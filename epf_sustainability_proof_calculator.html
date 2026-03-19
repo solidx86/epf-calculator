@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPF Sustainability Proof Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f5f5f3;
+    --color-bg-tertiary: #eeede9;
+    --color-bg-info: #e6f1fb;
+    --color-bg-success: #eaf3de;
+    --color-bg-warning: #faeeda;
+    --color-bg-danger: #fcebeb;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-text-info: #0c447c;
+    --color-text-success: #27500a;
+    --color-text-warning: #633806;
+    --color-text-danger: #791f1f;
+    --color-border: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --color-border-info: rgba(12,68,124,0.3);
+    --color-border-success: rgba(39,80,10,0.3);
+    --color-border-warning: rgba(99,56,6,0.3);
+    --color-border-danger: rgba(121,31,31,0.3);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --blue: #378ADD;
+    --amber: #EF9F27;
+    --green: #639922;
+    --red: #E24B4A;
+    --font: 'Georgia', serif;
+    --font-sans: system-ui, -apple-system, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #1c1c1a;
+      --color-bg-secondary: #252523;
+      --color-bg-tertiary: #2e2e2b;
+      --color-bg-info: #042c53;
+      --color-bg-success: #173404;
+      --color-bg-warning: #412402;
+      --color-bg-danger: #501313;
+      --color-text-primary: #f0efe9;
+      --color-text-secondary: #b4b2a9;
+      --color-text-tertiary: #888780;
+      --color-text-info: #85b7eb;
+      --color-text-success: #97c459;
+      --color-text-warning: #fac775;
+      --color-text-danger: #f09595;
+      --color-border: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.18);
+      --color-border-info: rgba(133,183,235,0.3);
+      --color-border-success: rgba(151,196,89,0.3);
+      --color-border-warning: rgba(250,199,117,0.3);
+      --color-border-danger: rgba(240,149,149,0.3);
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  .header-tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font);
+    font-size: 26px;
+    font-weight: normal;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+
+  .panel {
+    background: var(--color-bg);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-head {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--color-border);
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 480px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .split-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .field input {
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--radius-md);
+    padding: 9px 11px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: var(--color-bg);
+    width: 100%;
+    transition: border-color .15s;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .field-note {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+  }
+
+  .btn-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+
+  .calc-btn {
+    padding: 10px 24px;
+    background: var(--color-bg-info);
+    color: var(--color-text-info);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .calc-btn:hover { opacity: .85; }
+
+  .reset-btn {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    background: none;
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 9px 16px;
+    cursor: pointer;
+  }
+
+  #results { display: none; margin-top: 1rem; }
+
+  .tab-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .rtab {
+    padding: 6px 14px;
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--color-text-secondary);
+    transition: all .15s;
+  }
+  .rtab.active {
+    background: var(--color-bg-info);
+    color: var(--color-text-info);
+    border-color: transparent;
+    font-weight: 600;
+  }
+
+  .card {
+    background: var(--color-bg);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 10px;
+  }
+  .card.danger-card { border-color: var(--color-border-danger); }
+  .card.warn-card   { border-color: var(--color-border-warning); }
+
+  .card-head {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 12px;
+  }
+
+  .math-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--color-border);
+    font-size: 13px;
+    gap: 8px;
+  }
+  .math-row:last-child { border-bottom: none; padding-top: 10px; }
+
+  .math-key { color: var(--color-text-secondary); flex: 1; line-height: 1.4; }
+  .math-val { font-weight: 600; white-space: nowrap; color: var(--color-text-primary); }
+  .math-val.neg  { color: var(--color-text-danger); }
+  .math-val.pos  { color: var(--color-text-success); }
+  .math-val.warn { color: var(--color-text-warning); }
+
+  .split-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .split-card {
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    background: var(--color-bg-secondary);
+  }
+
+  .split-label {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    line-height: 1.4;
+  }
+
+  .split-main {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .split-sub { font-size: 10px; color: var(--color-text-tertiary); }
+
+  .bar-wrap { margin: 14px 0; }
+
+  .bar-lbl {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 5px;
+  }
+
+  .bar-track {
+    height: 14px;
+    background: var(--color-bg-secondary);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-seg {
+    height: 100%;
+    display: inline-block;
+    float: left;
+  }
+
+  .bar-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .leg {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  .leg-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .verdict-box {
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+  .verdict-box.danger { background: var(--color-bg-danger); }
+  .verdict-box.warn   { background: var(--color-bg-warning); }
+  .verdict-box.ok     { background: var(--color-bg-success); }
+
+  .verdict-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .verdict-title.danger { color: var(--color-text-danger); }
+  .verdict-title.warn   { color: var(--color-text-warning); }
+  .verdict-title.ok     { color: var(--color-text-success); }
+
+  .verdict-body { font-size: 12px; line-height: 1.65; }
+  .verdict-body.danger { color: var(--color-text-danger); }
+  .verdict-body.warn   { color: var(--color-text-warning); }
+  .verdict-body.ok     { color: var(--color-text-success); }
+
+  .note-box {
+    background: var(--color-bg-warning);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--color-text-warning);
+    line-height: 1.6;
+    margin: 8px 0 12px;
+  }
+
+  .proof-block {
+    background: var(--color-bg-secondary);
+    border-left: 2px solid var(--blue);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    line-height: 1.8;
+    white-space: pre-line;
+    font-family: var(--font);
+  }
+
+  .notes-block {
+    background: var(--color-bg-secondary);
+    border-left: 2px solid var(--color-border-success);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    line-height: 1.75;
+    white-space: pre-line;
+  }
+
+  .disclaimer {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    line-height: 1.65;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--color-border);
+  }
+
+  .assumption-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 0.5px solid var(--color-border);
+    gap: 8px;
+  }
+  .assumption-row:last-child { border-bottom: none; }
+  .assumption-row span:first-child { color: var(--color-text-secondary); }
+  .assumption-row span:last-child  { font-weight: 600; color: var(--color-text-primary); }
+
+  footer {
+    margin-top: 2rem;
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    text-align: center;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-tag">Public Mutual Unit Trust Consultant Tool</div>
+    <h1>EPF Sustainability Proof Calculator</h1>
+    <p class="header-sub">Enter a client's real details to calculate how much of their retirement lifestyle EPF alone can sustain — and quantify the gap that needs to be filled.</p>
+  </header>
+
+  <div class="panel">
+    <div class="section-head">Client details</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Current age</label>
+        <input type="number" id="age" value="35" min="20" max="59">
+      </div>
+      <div class="field">
+        <label>Retirement age</label>
+        <input type="number" id="retireAge" value="60" min="50" max="70">
+      </div>
+      <div class="field">
+        <label>Current monthly income (RM)</label>
+        <input type="number" id="income" value="5000" min="1000">
+      </div>
+      <div class="field">
+        <label>Current EPF balance (RM)</label>
+        <input type="number" id="epfBalance" value="80000" min="0">
+        <div class="field-note">From myEPF app or annual statement</div>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Life expectancy</label>
+        <input type="number" id="lifeExp" value="80" min="65" max="95">
+      </div>
+      <div class="field">
+        <label>Desired retirement lifestyle (% of income)</label>
+        <input type="number" id="lifestylePct" value="70" min="50" max="100">
+        <div class="field-note">70% = maintain current lifestyle (World Bank benchmark)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-head">Assumptions (editable)</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>EPF annual dividend rate (%)</label>
+        <input type="number" id="epfDiv" value="5.5" min="1" max="10" step="0.1">
+        <div class="field-note">EPF 5-yr average ~5.5–6%</div>
+      </div>
+      <div class="field">
+        <label>Annual salary growth (%)</label>
+        <input type="number" id="salaryGrowth" value="3" min="0" max="10" step="0.1">
+      </div>
+      <div class="field">
+        <label>Inflation rate (%)</label>
+        <input type="number" id="inflation" value="3" min="1" max="8" step="0.1">
+      </div>
+      <div class="field">
+        <label>EPF contribution rate (employee + employer %)</label>
+        <input type="number" id="epfContrib" value="23" min="11" max="30" step="0.5">
+        <div class="field-note">Default: 11% employee + 12% employer = 23%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="calc-btn" onclick="calculate()">Calculate EPF sustainability</button>
+    <button class="reset-btn" onclick="resetCalc()">Reset</button>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>
+    For consultant use only. Results are illustrative projections — not financial advice.<br>
+    EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%).
+  </footer>
+
+</div>
+
+<script>
+function fmt(n){ return 'RM' + Math.round(n).toLocaleString(); }
+function fmtD(n){ return parseFloat(n).toFixed(1) + '%'; }
+function pct(n){ return Math.round(n) + '%'; }
+function cross(n){ return n.toFixed(2) + '×'; }
+
+function resetCalc(){
+  const r = document.getElementById('results');
+  r.style.display = 'none';
+  r.innerHTML = '';
+}
+
+function calculate(){
+  const age          = +document.getElementById('age').value;
+  const retireAge    = +document.getElementById('retireAge').value;
+  const income       = +document.getElementById('income').value;
+  const epfBal       = +document.getElementById('epfBalance').value;
+  const lifeExp      = +document.getElementById('lifeExp').value;
+  const lifePct      = +document.getElementById('lifestylePct').value / 100;
+  const epfDivRate   = +document.getElementById('epfDiv').value / 100;
+  const salGrowth    = +document.getElementById('salaryGrowth').value / 100;
+  const inflation    = +document.getElementById('inflation').value / 100;
+  const contribRate  = +document.getElementById('epfContrib').value / 100;
+
+  const yearsToRetire  = retireAge - age;
+  const retireDuration = lifeExp - retireAge;
+
+  if (yearsToRetire <= 0 || retireDuration <= 0) {
+    const r = document.getElementById('results');
+    r.style.display = 'block';
+    r.innerHTML = '<div class="card"><div class="card-head" style="color:var(--color-text-danger)">Please check your age, retirement age, and life expectancy inputs.</div></div>';
+    return;
+  }
+
+  // Project EPF balance at retirement (year-by-year accumulation)
+  let epfAtRetire = epfBal;
+  let currentSalary = income;
+  for (let y = 0; y < yearsToRetire; y++) {
+    const annualContrib = currentSalary * contribRate * 12;
+    epfAtRetire = epfAtRetire * (1 + epfDivRate) + annualContrib;
+    currentSalary *= (1 + salGrowth);
+  }
+  const finalSalary = income * Math.pow(1 + salGrowth, yearsToRetire);
+
+  // Lifestyle needs
+  const needNominal = income * lifePct;
+  const needReal    = income * lifePct * Math.pow(1 + inflation, yearsToRetire);
+  const inflFactor  = Math.pow(1 + inflation, yearsToRetire);
+
+  // Monthly EPF payout — annuity formula (4% post-retirement conservative return)
+  const postRetireRate    = 0.04 / 12;
+  const n                 = retireDuration * 12;
+  const epfMonthlyAnnuity = epfAtRetire * postRetireRate / (1 - Math.pow(1 + postRetireRate, -n));
+  const epfMonthlySimple  = epfAtRetire / n;
+  const epfMonthly        = epfMonthlyAnnuity;
+
+  // Gaps
+  const gapNominal      = needNominal - epfMonthly;
+  const gapReal         = needReal - epfMonthly;
+  const totalGapNominal = Math.max(0, gapNominal) * 12 * retireDuration;
+  const totalGapReal    = Math.max(0, gapReal) * 12 * retireDuration;
+
+  // Coverage
+  const coverageNominal = Math.min(epfMonthly / needNominal, 1);
+  const coverageReal    = Math.min(epfMonthly / needReal, 1);
+  const coverPctNom     = Math.round(coverageNominal * 100);
+  const coverPctReal    = Math.round(coverageReal * 100);
+
+  // Depletion (at real need, no post-retire growth — worst case)
+  const monthsSustained = epfAtRetire / needReal;
+  const yearsSustained  = monthsSustained / 12;
+  const depletionAge    = Math.round(retireAge + yearsSustained);
+
+  // Verdict
+  let verdictClass, verdictTitle, verdictBody;
+  if (coverageReal >= 0.70) {
+    verdictClass = 'ok';
+    verdictTitle = 'EPF is relatively adequate — inflation risk still present.';
+    verdictBody  = `EPF covers approximately ${coverPctReal}% of your client's inflation-adjusted retirement need. This clears the minimum threshold, but does not account for healthcare cost escalation, family obligations, or lifestyle upgrades in retirement. Supplementary investing remains strongly advisable.`;
+  } else if (coverageReal >= 0.45) {
+    verdictClass = 'warn';
+    verdictTitle = `EPF covers only ${coverPctReal}% of the real retirement need.`;
+    verdictBody  = `There is a meaningful gap between what EPF provides and what your client's lifestyle will cost at retirement. Without supplementary income, their standard of living will decline in retirement. A consistent unit trust investment plan can systematically close this gap.`;
+  } else {
+    verdictClass = 'danger';
+    verdictTitle = `EPF covers only ${coverPctReal}% of the real retirement need.`;
+    verdictBody  = `At current trajectory, EPF alone will fund your client's retirement lifestyle for approximately ${yearsSustained.toFixed(1)} years — running short around age ${depletionAge}. Without supplementary investing, the last ${Math.round(retireDuration - yearsSustained)} years of retirement face a serious funding shortfall.`;
+  }
+
+  // Proof script
+  const epfDivVal    = document.getElementById('epfDiv').value;
+  const inflationVal = document.getElementById('inflation').value;
+  const proofScript  =
+`"Okay, let me walk you through your actual numbers.
+
+You're ${age} years old, planning to retire at ${retireAge}. That gives us ${yearsToRetire} years of EPF contributions still ahead of you.
+
+Your EPF balance today is ${fmt(epfBal)}. With continued contributions at ${pct(contribRate * 100)} of your salary — growing at ${pct(salGrowth * 100)} a year — and EPF dividends averaging ${fmtD(epfDivVal)}, your projected EPF balance at retirement is approximately ${fmt(epfAtRetire)}.
+
+If we draw that down over ${retireDuration} years, assuming your savings earn a conservative 4% post-retirement, that works out to about ${fmt(epfMonthly)} a month from EPF.
+
+Now — you earn ${fmt(income)} today. To maintain your lifestyle at retirement, you'd want about ${pct(lifePct * 100)} of that — which is ${fmt(needNominal)} a month in today's ringgit.
+
+But here's the part most people don't see: in ${yearsToRetire} years, at ${fmtD(inflationVal)} inflation, that same lifestyle won't cost ${fmt(needNominal)} anymore. It'll cost ${fmt(needReal)} a month.
+
+EPF gives you: ${fmt(epfMonthly)}/month
+Your real need: ${fmt(needReal)}/month
+Monthly gap: ${fmt(Math.max(0, gapReal))}/month
+
+Over your ${retireDuration}-year retirement, that gap totals ${fmt(totalGapReal)}.
+
+EPF covers about ${coverPctReal}% of what you'll actually need. The remaining ${100 - coverPctReal}% needs to come from somewhere — and that's exactly what we're here to build."`;
+
+  const html = `
+    <div class="tab-row">
+      <button class="rtab active" onclick="showTab('summary', this)">Summary</button>
+      <button class="rtab" onclick="showTab('breakdown', this)">Step-by-step math</button>
+      <button class="rtab" onclick="showTab('proof', this)">Client proof script</button>
+    </div>
+
+    <div id="tab-summary">
+      <div class="card">
+        <div class="card-head">Assumptions used</div>
+        <div class="assumption-row"><span>Income</span><span>${fmt(income)}/mo</span></div>
+        <div class="assumption-row"><span>EPF balance today</span><span>${fmt(epfBal)}</span></div>
+        <div class="assumption-row"><span>Years to retirement</span><span>${yearsToRetire} years</span></div>
+        <div class="assumption-row"><span>Retirement duration</span><span>${retireDuration} years (age ${retireAge}–${lifeExp})</span></div>
+        <div class="assumption-row"><span>EPF dividend rate</span><span>${fmtD(epfDivVal)}/yr</span></div>
+        <div class="assumption-row"><span>Salary growth</span><span>${fmtD(document.getElementById('salaryGrowth').value)}/yr</span></div>
+        <div class="assumption-row"><span>Inflation</span><span>${fmtD(inflationVal)}/yr</span></div>
+        <div class="assumption-row"><span>Lifestyle target</span><span>${pct(lifePct * 100)} of income</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">Projected EPF at retirement</div>
+        <div class="math-row"><span class="math-key">Projected EPF balance at age ${retireAge}</span><span class="math-val pos">${fmt(epfAtRetire)}</span></div>
+        <div class="math-row"><span class="math-key">Monthly payout — annuity method (4% post-retire, ${retireDuration} yrs)</span><span class="math-val pos">${fmt(epfMonthly)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Monthly payout — simple drawdown (no growth)</span><span class="math-val">${fmt(epfMonthlySimple)}/mo</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">What your client needs</div>
+        <div class="math-row"><span class="math-key">Lifestyle target — today's ringgit (${pct(lifePct * 100)} of ${fmt(income)})</span><span class="math-val">${fmt(needNominal)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span><span class="math-val warn">${fmt(needReal)}/mo</span></div>
+      </div>
+
+      <div class="card danger-card">
+        <div class="card-head">The retirement gap</div>
+        <div class="math-row"><span class="math-key">Monthly gap — nominal (today's RM)</span><span class="math-val neg">−${fmt(Math.max(0, gapNominal))}/mo</span></div>
+        <div class="math-row"><span class="math-key">Monthly gap — real (inflation-adjusted)</span><span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span></div>
+        <div class="math-row"><span class="math-key">Total nominal gap over ${retireDuration} years</span><span class="math-val neg">−${fmt(totalGapNominal)}</span></div>
+        <div class="math-row"><span class="math-key">Total real gap over ${retireDuration} years</span><span class="math-val neg">−${fmt(totalGapReal)}</span></div>
+        <div class="math-row"><span class="math-key">EPF coverage of real need</span><span class="math-val ${coverPctReal < 50 ? 'neg' : 'warn'}">${coverPctReal}%</span></div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-lbl"><span>EPF covers (of real need)</span><span>${coverPctReal}%</span></div>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:${Math.min(coverageReal * 100, 100).toFixed(1)}%;background:var(--blue)"></div>
+          <div class="bar-seg" style="width:${Math.max(0, Math.min((1 - coverageReal) * 100, 100)).toFixed(1)}%;background:var(--amber)"></div>
+        </div>
+        <div class="bar-legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>EPF covers</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Gap — needs supplementary plan</div>
+        </div>
+      </div>
+
+      <div class="split-grid">
+        <div class="split-card">
+          <div class="split-label">Monthly gap (nominal)</div>
+          <div class="split-main" style="color:var(--color-text-danger)">${fmt(Math.max(0, gapNominal))}</div>
+          <div class="split-sub">today's ringgit / month</div>
+        </div>
+        <div class="split-card">
+          <div class="split-label">Monthly gap (real)</div>
+          <div class="split-main" style="color:var(--color-text-danger)">${fmt(Math.max(0, gapReal))}</div>
+          <div class="split-sub">future ringgit / month</div>
+        </div>
+        <div class="split-card">
+          <div class="split-label">Total gap (nominal)</div>
+          <div class="split-main" style="color:var(--color-text-warning)">${fmt(totalGapNominal)}</div>
+          <div class="split-sub">over ${retireDuration}-yr retirement</div>
+        </div>
+        <div class="split-card">
+          <div class="split-label">Total gap (real)</div>
+          <div class="split-main" style="color:var(--color-text-warning)">${fmt(totalGapReal)}</div>
+          <div class="split-sub">over ${retireDuration}-yr retirement</div>
+        </div>
+      </div>
+
+      <div class="verdict-box ${verdictClass}">
+        <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
+        <div class="verdict-body ${verdictClass}">${verdictBody}</div>
+      </div>
+
+      <div class="disclaimer">
+        Projection assumes consistent EPF contributions on a growing salary, EPF dividend at ${fmtD(epfDivVal)}/year during accumulation, and 4% post-retirement return during drawdown (annuity method). Inflation at ${fmtD(inflationVal)}/year applied to lifestyle cost only. EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%). Results are illustrative — not financial advice. Actual EPF balance may differ based on contribution history, withdrawals, and dividend performance.
+      </div>
+    </div>
+
+    <div id="tab-breakdown" style="display:none">
+      <div class="card">
+        <div class="card-head">11-step calculation walkthrough</div>
+        <div class="note-box">These are the exact steps used to arrive at every number in the summary. Use this to explain your methodology to a client or manager.</div>
+        <div class="math-row"><span class="math-key">Step 1 — Starting EPF balance</span><span class="math-val">${fmt(epfBal)}</span></div>
+        <div class="math-row"><span class="math-key">Step 2 — Annual EPF contribution today (${pct(contribRate * 100)} × ${fmt(income)} × 12)</span><span class="math-val">${fmt(income * contribRate * 12)}/yr</span></div>
+        <div class="math-row"><span class="math-key">Step 3 — EPF dividend applied annually during accumulation</span><span class="math-val">${fmtD(epfDivVal)}/yr</span></div>
+        <div class="math-row"><span class="math-key">Step 4 — Salary at retirement (${fmtD(document.getElementById('salaryGrowth').value)} growth × ${yearsToRetire} yrs)</span><span class="math-val">${fmt(finalSalary)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 5 — Projected EPF balance at age ${retireAge}</span><span class="math-val pos">${fmt(epfAtRetire)}</span></div>
+        <div class="math-row"><span class="math-key">Step 6 — Monthly payout via annuity formula (4% post-retire, ${n} months)</span><span class="math-val pos">${fmt(epfMonthly)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 7 — Lifestyle need today (${pct(lifePct * 100)} × ${fmt(income)})</span><span class="math-val">${fmt(needNominal)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 8 — Inflation factor over ${yearsToRetire} yrs at ${fmtD(inflationVal)}</span><span class="math-val">${cross(inflFactor)}</span></div>
+        <div class="math-row"><span class="math-key">Step 9 — Real lifestyle need at retirement (Step 7 × Step 8)</span><span class="math-val warn">${fmt(needReal)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 10 — Real monthly gap (Step 9 − Step 6)</span><span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 11 — Total real gap (Step 10 × 12 × ${retireDuration} yrs)</span><span class="math-val neg">−${fmt(totalGapReal)}</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">Annuity formula used in Step 6</div>
+        <div class="notes-block">PMT = PV × r ÷ (1 − (1 + r)^−n)
+
+Where:
+  PV = projected EPF balance at retirement = ${fmt(epfAtRetire)}
+  r  = monthly post-retirement rate = 4% ÷ 12 = 0.3333%
+  n  = months in retirement = ${retireDuration} × 12 = ${n} months
+
+Result: ${fmt(epfMonthly)}/month
+
+This assumes the EPF balance earns ~4%/year post-retirement (e.g. parked in a conservative fund or Akaun Sejahtera). This gives EPF the most favourable possible monthly payout — making the gap result conservative and defensible.</div>
+      </div>
+    </div>
+
+    <div id="tab-proof" style="display:none">
+      <div class="card">
+        <div class="card-head">Word-for-word client proof script</div>
+        <div class="proof-block">${proofScript}</div>
+      </div>
+      <div class="card">
+        <div class="card-head">Consultation delivery notes</div>
+        <div class="notes-block">1. Ask the client to open myEPF app → Dashboard → total savings. Enter that number above. Takes 30 seconds.
+
+2. Walk through the proof script in your own words. You don't need to recite it verbatim — use it as a guide.
+
+3. Key moment: when you reveal the coverage percentage and total real gap, pause. Let it land. Don't rush to the solution.
+
+4. Then transition: "This gap is exactly what I help people close. Let me show you what a consistent monthly contribution into a unit trust fund would do over your remaining ${yearsToRetire} years."
+
+5. Important framing — always say:
+   ✓ "EPF is your foundation."
+   ✗ Never say "EPF is not enough" or "EPF will fail you."
+
+6. Present the nominal gap first (easier to grasp), then layer in the real/inflation gap as the deeper truth.
+
+7. Always end with the solution, never just the problem.</div>
+      </div>
+    </div>`;
+
+  const el = document.getElementById('results');
+  el.style.display = 'block';
+  el.innerHTML = html;
+}
+
+function showTab(tab, btn) {
+  ['summary', 'breakdown', 'proof'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
