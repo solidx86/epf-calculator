@@ -4,22 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EPF Sustainability Proof Calculator</title>
-<script>
-  (function() {
-    var allowed = ['engineerdad.my', 'www.engineerdad.my'];
-    var host = window.location.hostname;
-    var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
-    if (!isLocal && allowed.indexOf(host) === -1) {
-      document.documentElement.innerHTML =
-        '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f5f3;">' +
-        '<div style="text-align:center;color:#5f5e5a;padding:2rem">' +
-        '<div style="font-size:32px;margin-bottom:1rem">🔒</div>' +
-        '<div style="font-size:16px;font-weight:600;color:#1a1a18;margin-bottom:8px">Access restricted</div>' +
-        '<div style="font-size:13px">This tool is only available on <strong>engineerdad.my</strong></div>' +
-        '</div></body>';
-    }
-  })();
-</script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
