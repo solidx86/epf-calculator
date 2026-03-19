@@ -678,11 +678,9 @@
       const needReal = income * lifePct * inflFactor;
 
       // --- Monthly EPF payout (annuity, using configurable post-retirement rate) ---
-      const monthlyPostRate = postRetireRate / 12;
       const n = retireDuration * 12;
-      const epfMonthlyAnnuity = epfAtRetire * monthlyPostRate / (1 - Math.pow(1 + monthlyPostRate, -n));
-      const epfMonthlySimple = epfAtRetire / n;
-      const epfMonthly = epfMonthlyAnnuity;
+      // Monthly payout — annuity method: first year's annual return divided by 12
+      const epfMonthly = (epfAtRetire * postRetireRate) / 12;
 
       // --- Gaps ---
       const gapNominal = needNominal - epfMonthly;
@@ -716,7 +714,50 @@
         verdictBody = `At current trajectory, EPF alone will fund your client's retirement lifestyle for approximately ${yearsSustained.toFixed(1)} years — running short around age ${depletionAge}. Without supplementary investing, the last ${Math.round(retireDuration - yearsSustained)} years of retirement face a serious funding shortfall.`;
       }
 
+      // --- Inflation-adjusted withdrawals (growing annuity) ---
+      // Formula: W0 = PV * (r - g) / (1 - ((1+g)/(1+r))^n)
+      let annualInfl = inflation;
+      let annualReturn = postRetireRate;
+      let nYears = retireDuration;
+      let W0;
+      if (Math.abs(annualReturn - annualInfl) < 1e-8) {
+        W0 = epfAtRetire / nYears;
+      } else {
+        W0 = epfAtRetire * (annualReturn - annualInfl) / (1 - Math.pow((1 + annualInfl) / (1 + annualReturn), nYears));
+      }
+      // Build table of withdrawals
+      let inflTable = [];
+      let totalDrawn = 0;
+      let epfBalLeft = epfAtRetire;
+      for (let y = 1; y <= nYears; y++) {
+        let annual = W0 * Math.pow(1 + annualInfl, y - 1);
+        let monthly = annual / 12;
+        // Calculate balance after earning return, then after withdrawal
+        let balBefore = epfBalLeft * (1 + annualReturn);
+        let balAfter = balBefore - annual;
+        inflTable.push({ year: y, annual: annual, monthly: monthly, balance: Math.max(0, balAfter) });
+        epfBalLeft = balAfter;
+        totalDrawn += annual;
+      }
+
       // --- Render ---
+      const inflTableHtml = `
+        <div class="card">
+          <div class="card-head">Inflation-adjusted withdrawal schedule</div>
+          <div style="overflow-x:auto">
+          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:8px">
+            <thead>
+              <tr style="background:var(--color-bg-secondary)"><th style="padding:6px 8px;text-align:left">Year</th><th style="padding:6px 8px;text-align:right">Monthly withdrawal</th><th style="padding:6px 8px;text-align:right">Annual withdrawal</th><th style="padding:6px 8px;text-align:right">EPF Balance</th></tr>
+            </thead>
+            <tbody>
+              ${inflTable.map(row => `<tr><td style='padding:4px 8px'>${row.year}</td><td style='padding:4px 8px;text-align:right'>RM${row.monthly.toLocaleString(undefined, {maximumFractionDigits:0})}</td><td style='padding:4px 8px;text-align:right'>RM${row.annual.toLocaleString(undefined, {maximumFractionDigits:0})}</td><td style='padding:4px 8px;text-align:right'>RM${row.balance.toLocaleString(undefined, {maximumFractionDigits:0})}</td></tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="font-size:12px;color:var(--color-text-tertiary)">Total withdrawn over ${nYears} years: <b>RM${Math.round(totalDrawn).toLocaleString()}</b></div>
+          </div>
+        </div>
+      `;
+
       const html = `
     <div class="tab-row">
       <button class="rtab active" onclick="showTab('summary', this)">Summary</button>
@@ -744,12 +785,8 @@
           <span class="math-val pos">${fmt(epfAtRetire)}</span>
         </div>
         <div class="math-row">
-          <span class="math-key">Monthly payout — annuity method (${fmtD(postRetireVal)} post-retire, ${retireDuration} yrs)</span>
+          <span class="math-key">Monthly payout — annuity method (first year's annual return ÷ 12)</span>
           <span class="math-val pos">${fmt(epfMonthly)}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Monthly payout — simple drawdown (no growth, conservative)</span>
-          <span class="math-val">${fmt(epfMonthlySimple)}/mo</span>
         </div>
       </div>
 
@@ -828,6 +865,7 @@
         <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
         <div class="verdict-body ${verdictClass}">${verdictBody}</div>
       </div>
+      ${inflTableHtml}
 
       <div class="disclaimer">
         Projection assumes consistent EPF contributions on a growing salary, EPF dividend at ${fmtD(epfDivVal)}/year during accumulation, and ${fmtD(postRetireVal)} post-retirement return during drawdown (annuity method). Inflation at ${fmtD(inflationVal)}/year applied to lifestyle cost only. EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%). Results are illustrative — not financial advice. Actual EPF balance may differ based on contribution history, withdrawals, and dividend performance.
