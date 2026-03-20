@@ -368,7 +368,7 @@
       font-size: 11px;
       color: #fff;
       font-weight: 600;
-      text-shadow: 0 0 2px rgba(0,0,0,.4);
+      text-shadow: 0 0 2px rgba(0, 0, 0, .4);
     }
 
     .bar-seg span {
@@ -712,7 +712,33 @@
       const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
       const desiredLifestyleToday = needNominal;
       const gapToRetirementLifestyle = Math.max(0, desiredLifestyleToday - actualLifestyleToday);
-      const remainingSalaryGap = Math.max(0, income - desiredLifestyleToday);
+      const hasLifestyleTargetCoverage = actualLifestyleToday >= desiredLifestyleToday;
+      const lifestyleTargetSurplus = hasLifestyleTargetCoverage ? actualLifestyleToday - desiredLifestyleToday : 0;
+
+      let lifestyleBarGreenWidth, lifestyleBarAmberWidth, lifestyleBarBlueWidth, lifestyleBarRedWidth;
+      let greenBarText, amberBarText, blueBarText, redBarText;
+
+      if (hasLifestyleTargetCoverage) {
+        lifestyleBarGreenWidth = income > 0 ? (desiredLifestyleToday / income) * 100 : 0;
+        lifestyleBarBlueWidth = income > 0 ? (lifestyleTargetSurplus / income) * 100 : 0;
+        lifestyleBarAmberWidth = 0;
+        const remainingUnfunded = Math.max(0, income - actualLifestyleToday);
+        lifestyleBarRedWidth = income > 0 ? (remainingUnfunded / income) * 100 : 0;
+
+        greenBarText = fmt(desiredLifestyleToday);
+        blueBarText = fmt(lifestyleTargetSurplus);
+        redBarText = fmt(remainingUnfunded);
+      } else {
+        lifestyleBarGreenWidth = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
+        lifestyleBarAmberWidth = income > 0 ? (gapToRetirementLifestyle / income) * 100 : 0;
+        lifestyleBarBlueWidth = 0;
+        const remainingSalaryPart = Math.max(0, income - desiredLifestyleToday);
+        lifestyleBarRedWidth = income > 0 ? (remainingSalaryPart / income) * 100 : 0;
+        
+        greenBarText = fmt(actualLifestyleToday);
+        amberBarText = fmt(gapToRetirementLifestyle);
+        redBarText = fmt(remainingSalaryPart);
+      }
 
       // --- Gaps ---
       const gapNominal = needNominal - epfMonthly;
@@ -728,6 +754,13 @@
       const coverageMainWidth = Math.min(coverageReal * 100, 100);
       const coverageShortfallWidth = hasFullCoverage ? 0 : Math.max(0, 100 - coverageMainWidth);
       const coverageSurplus = hasFullCoverage ? epfMonthly - needReal : 0;
+
+      let coverageBarNeedWidth = 0;
+      let coverageBarSurplusWidth = 0;
+      if (hasFullCoverage && epfMonthly > 0) {
+        coverageBarNeedWidth = (needReal / epfMonthly) * 100;
+        coverageBarSurplusWidth = (coverageSurplus / epfMonthly) * 100;
+      }
 
       // --- Depletion estimate (worst-case: no post-retire growth) ---
       const yearsSustained = (epfAtRetire / needReal) / 12;
@@ -755,7 +788,14 @@
 
       // --- Verdict for Actual Retirement Lifestyle Coverage ---
       let actualVerdictClass, actualVerdictTitle, actualVerdictBody;
-      if (actualLifestylePctOfSalary >= 70) {
+      const lifestyleTargetPct = lifePct * 100;
+      if (actualLifestylePctOfSalary >= lifestyleTargetPct) {
+        actualVerdictClass = 'ok';
+        actualVerdictTitle = 'Target achieved — EPF covers or exceeds desired retirement lifestyle today.';
+        const surplusPct = actualLifestylePctOfSalary - lifestyleTargetPct;
+        const surplusText = surplusPct > 0.1 ? ` It provides a surplus of ${fmt(lifestyleTargetSurplus)}/mo, which is ${surplusPct.toFixed(1)} percentage points above your target.` : 'This meets your target exactly.';
+        actualVerdictBody = `Your client can sustain ${actualLifestylePctOfSalary.toFixed(1)}% of current salary in retirement from EPF alone, which meets the desired lifestyle target (${lifestyleTargetPct.toFixed(0)}%). ${surplusText} This is a strong position, and preserving this outcome should remain a priority.`;
+      } else if (actualLifestylePctOfSalary >= 70) {
         actualVerdictClass = 'ok';
         actualVerdictTitle = 'Strong result — EPF can support a good portion of today\'s salary in retirement.';
         actualVerdictBody = `Your client can sustain ${actualLifestylePctOfSalary.toFixed(1)}% of current salary in retirement from EPF alone. This is a strong baseline, but adding retirement savings still improves resilience against longer life, inflation, and healthcare.`;
@@ -810,7 +850,7 @@
               <tr style="background:var(--color-bg-secondary)"><th style="padding:6px 8px;text-align:left">Year</th><th style="padding:6px 8px;text-align:right">Monthly withdrawal</th><th style="padding:6px 8px;text-align:right">Annual withdrawal</th><th style="padding:6px 8px;text-align:right">EPF Balance</th></tr>
             </thead>
             <tbody>
-              ${inflTable.map(row => `<tr><td style='padding:4px 8px'>${row.year}</td><td style='padding:4px 8px;text-align:right'>RM${row.monthly.toLocaleString(undefined, {maximumFractionDigits:0})}</td><td style='padding:4px 8px;text-align:right'>RM${row.annual.toLocaleString(undefined, {maximumFractionDigits:0})}</td><td style='padding:4px 8px;text-align:right'>RM${row.balance.toLocaleString(undefined, {maximumFractionDigits:0})}</td></tr>`).join('')}
+              ${inflTable.map(row => `<tr><td style='padding:4px 8px'>${row.year}</td><td style='padding:4px 8px;text-align:right'>RM${row.monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td><td style='padding:4px 8px;text-align:right'>RM${row.annual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td><td style='padding:4px 8px;text-align:right'>RM${row.balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`).join('')}
             </tbody>
           </table>
           <div style="font-size:12px;color:var(--color-text-tertiary)">Total withdrawn over ${nYears} years: <b>RM${Math.round(totalDrawn).toLocaleString()}</b></div>
@@ -895,12 +935,40 @@
         <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows how much of the inflation-adjusted retirement income need EPF alone can sustainably pay at retirement.</div>
         <div class="bar-wrap">
           <div class="bar-track">
-            <div class="bar-seg" style="width:${coverageMainWidth.toFixed(1)}%;background:${hasFullCoverage ? 'var(--green)' : 'var(--blue)'}"><span>${fmt(epfMonthly)}/mo</span></div>
-            ${hasFullCoverage ? '' : `<div class="bar-seg" style="width:${coverageShortfallWidth.toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, needReal - epfMonthly))}/mo</span></div>`}
+          ${hasFullCoverage
+            ? `
+                <div class="bar-seg" style="width:${coverageBarNeedWidth.toFixed(1)}%;background:var(--green)"></div>
+                <div class="bar-seg" style="width:${coverageBarSurplusWidth.toFixed(1)}%;background:var(--blue)"></div>
+              `
+            : `
+                <div class="bar-seg" style="width:${coverageMainWidth.toFixed(1)}%;background:var(--blue)"></div>
+                <div class="bar-seg" style="width:${coverageShortfallWidth.toFixed(1)}%;background:var(--amber)"></div>
+              `
+          }
           </div>
           <div class="bar-legend">
-            <div class="leg"><div class="leg-dot" style="background:${hasFullCoverage ? 'var(--green)' : 'var(--blue)'}"></div><strong>EPF payout</strong> – inflation-adjusted monthly income from EPF</div>
-            ${hasFullCoverage ? `<div class="leg"><div class="leg-dot" style="background:var(--blue)"></div><strong>Surplus</strong> – monthly income above your real retirement need</div>` : `<div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Remaining need</strong> – monthly shortfall to desired retirement lifestyle</div>`}
+          ${hasFullCoverage
+            ? `
+                <div class="leg">
+                  <div class="leg-dot" style="background:var(--green)"></div>
+                  <span><strong>Sufficient payout:</strong> ${fmt(needReal)}/mo – portion of EPF payout that meets the need</span>
+                </div>
+                ${coverageSurplus > 0 ? `<div class="leg">
+                  <div class="leg-dot" style="background:var(--blue)"></div>
+                  <span><strong>Surplus:</strong> ${fmt(coverageSurplus)}/mo – payout above the need</span>
+                </div>` : ''}
+              `
+            : `
+                <div class="leg">
+                  <div class="leg-dot" style="background:var(--blue)"></div>
+                  <span><strong>EPF payout:</strong> ${fmt(epfMonthly)}/mo – inflation-adjusted monthly income from EPF</span>
+                </div>
+                <div class="leg">
+                  <div class="leg-dot" style="background:var(--amber)"></div>
+                  <span><strong>Remaining need:</strong> ${fmt(Math.max(0, needReal - epfMonthly))}/mo – monthly shortfall</span>
+                </div>
+              `
+          }
           </div>
         </div>
         <div class="verdict-box ${verdictClass}">
@@ -914,14 +982,32 @@
         <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows the EPF-supported retirement payout in today’s ringgit as a percentage of current salary, so you can compare purchasing power directly.</div>
         <div class="bar-wrap">
           <div class="bar-track">
-            <div class="bar-seg" style="width:${Math.min((actualLifestyleToday / income) * 100, 100).toFixed(1)}%;background:var(--green)"><span>${fmt(actualLifestyleToday)}/mo</span></div>
-            <div class="bar-seg" style="width:${Math.min((gapToRetirementLifestyle / income) * 100, 100).toFixed(1)}%;background:var(--amber)"><span>${fmt(gapToRetirementLifestyle)}/mo</span></div>
-            <div class="bar-seg" style="width:${Math.max(0, (remainingSalaryGap / income) * 100).toFixed(1)}%;background:var(--red)"><span>${fmt(remainingSalaryGap)}/mo</span></div>
+            <div class="bar-seg" style="width:${lifestyleBarGreenWidth.toFixed(1)}%;background:var(--green)"></div>
+            ${hasLifestyleTargetCoverage 
+              ? `<div class="bar-seg" style="width:${lifestyleBarBlueWidth.toFixed(1)}%;background:var(--blue)"></div>`
+              : `<div class="bar-seg" style="width:${lifestyleBarAmberWidth.toFixed(1)}%;background:var(--amber)"></div>`
+            }
+            <div class="bar-seg" style="width:${lifestyleBarRedWidth.toFixed(1)}%;background:var(--red)"></div>
           </div>
           <div class="bar-legend">
-            <div class="leg"><div class="leg-dot" style="background:var(--green)"></div><strong>EPF-funded income</strong> – monthly retirement payout in today’s money</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Lifestyle gap</strong> – shortfall to target retirement lifestyle today</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--red)"></div><strong>Salary let-go</strong> – remaining portion of salary effectively given up</div>
+            <div class="leg">
+              <div class="leg-dot" style="background:var(--green)"></div>
+              <span><strong>EPF-funded income:</strong> ${greenBarText} – monthly retirement payout in today’s money</span>
+            </div>
+            ${hasLifestyleTargetCoverage 
+              ? `<div class="leg">
+                  <div class="leg-dot" style="background:var(--blue)"></div>
+                  <span><strong>Surplus:</strong> ${blueBarText} – monthly income above your target lifestyle</span>
+                 </div>`
+              : `<div class="leg">
+                   <div class="leg-dot" style="background:var(--amber)"></div>
+                   <span><strong>Lifestyle gap:</strong> ${amberBarText} – shortfall to target retirement lifestyle today</span>
+                 </div>`
+            }
+            <div class="leg">
+              <div class="leg-dot" style="background:var(--red)"></div>
+              <span><strong>Salary let-go:</strong> ${redBarText} – remaining portion of salary effectively given up</span>
+            </div>
           </div>
         </div>
         <div class="verdict-box ${actualVerdictClass}">
