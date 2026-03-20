@@ -721,8 +721,13 @@
       const totalGapReal = Math.max(0, gapReal) * 12 * retireDuration;
 
       // --- Coverage ratios ---
-      const coverageReal = Math.min(epfMonthly / needReal, 1);
+      const coverageRealRaw = needReal > 0 ? epfMonthly / needReal : 0;
+      const coverageReal = Number.isFinite(coverageRealRaw) ? coverageRealRaw : 0;
       const coverPctReal = Math.round(coverageReal * 100);
+      const hasFullCoverage = coverageReal >= 1;
+      const coverageMainWidth = Math.min(coverageReal * 100, 100);
+      const coverageShortfallWidth = hasFullCoverage ? 0 : Math.max(0, 100 - coverageMainWidth);
+      const coverageSurplus = hasFullCoverage ? epfMonthly - needReal : 0;
 
       // --- Depletion estimate (worst-case: no post-retire growth) ---
       const yearsSustained = (epfAtRetire / needReal) / 12;
@@ -730,7 +735,11 @@
 
       // --- Verdict for EPF coverage ---
       let verdictClass, verdictTitle, verdictBody;
-      if (coverageReal >= 0.70) {
+      if (coverageReal >= 1) {
+        verdictClass = 'ok';
+        verdictTitle = 'Excellent result — EPF fully covers your real retirement need.';
+        verdictBody = `EPF covers ${coverPctReal}% of your client's inflation-adjusted retirement need and has a surplus of ${fmt(coverageSurplus)}/mo above the target. This means EPF alone can sustain the projected lifestyle and still provide a buffer for unexpected costs.`;
+      } else if (coverageReal >= 0.70) {
         verdictClass = 'ok';
         verdictTitle = 'EPF is relatively adequate — inflation risk still present.';
         verdictBody = `EPF covers approximately ${coverPctReal}% of your client's inflation-adjusted retirement need. This clears the minimum threshold, but does not account for healthcare cost escalation, family obligations, or lifestyle upgrades. Supplementary investing remains strongly advisable.`;
@@ -886,12 +895,12 @@
         <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows how much of the inflation-adjusted retirement income need EPF alone can sustainably pay at retirement.</div>
         <div class="bar-wrap">
           <div class="bar-track">
-            <div class="bar-seg" style="width:${Math.min(coverageReal * 100, 100).toFixed(1)}%;background:var(--blue)"><span>${fmt(epfMonthly)}/mo</span></div>
-            <div class="bar-seg" style="width:${Math.max(0, Math.min((1 - coverageReal) * 100, 100)).toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, needReal - epfMonthly))}/mo</span></div>
+            <div class="bar-seg" style="width:${coverageMainWidth.toFixed(1)}%;background:${hasFullCoverage ? 'var(--green)' : 'var(--blue)'}"><span>${fmt(epfMonthly)}/mo</span></div>
+            ${hasFullCoverage ? '' : `<div class="bar-seg" style="width:${coverageShortfallWidth.toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, needReal - epfMonthly))}/mo</span></div>`}
           </div>
           <div class="bar-legend">
-            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div><strong>EPF payout</strong> – inflation-adjusted monthly income from EPF</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Remaining need</strong> – monthly shortfall to desired retirement lifestyle</div>
+            <div class="leg"><div class="leg-dot" style="background:${hasFullCoverage ? 'var(--green)' : 'var(--blue)'}"></div><strong>EPF payout</strong> – inflation-adjusted monthly income from EPF</div>
+            ${hasFullCoverage ? `<div class="leg"><div class="leg-dot" style="background:var(--blue)"></div><strong>Surplus</strong> – monthly income above your real retirement need</div>` : `<div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Remaining need</strong> – monthly shortfall to desired retirement lifestyle</div>`}
           </div>
         </div>
         <div class="verdict-box ${verdictClass}">
