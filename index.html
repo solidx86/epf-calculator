@@ -907,71 +907,6 @@
       ${depletionAlertHtml}
 
       <div class="card">
-        <div class="card-head">Assumptions used</div>
-        <div class="assumption-row"><span>Monthly income</span><span>${fmt(income)}/mo</span></div>
-        <div class="assumption-row"><span>EPF balance today</span><span>${fmt(epfBal)}</span></div>
-        <div class="assumption-row"><span>Years to retirement</span><span>${yearsToRetire} years (age ${age} → ${retireAge})</span></div>
-        <div class="assumption-row"><span>Retirement duration</span><span>${retireDuration} years (age ${retireAge} → ${lifeExp})</span></div>
-        <div class="assumption-row"><span>EPF dividend rate (accumulation)</span><span>${fmtD(epfDivVal)}/yr</span></div>
-        <div class="assumption-row"><span>Post-retirement return rate (drawdown)</span><span>${fmtD(postRetireVal)}/yr</span></div>
-        <div class="assumption-row"><span>Salary growth</span><span>${fmtD(salGrowthVal)}/yr</span></div>
-        <div class="assumption-row"><span>Inflation rate</span><span>${fmtD(inflationVal)}/yr</span></div>
-        <div class="assumption-row"><span>Lifestyle target</span><span>${pct(lifePct * 100)} of income</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">Projected EPF at retirement</div>
-        <div class="math-row">
-          <span class="math-key">Projected EPF balance at age ${retireAge}</span>
-          <span class="math-val pos">${fmt(epfAtRetire)}</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Monthly payout — annuity method (first year's annual return ÷ 12)</span>
-          <span class="math-val pos">${fmt(epfMonthly)}/mo</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">What your client needs</div>
-        <div class="math-row">
-          <span class="math-key">Lifestyle target — today's ringgit (${pct(lifePct * 100)} of ${fmt(income)})</span>
-          <span class="math-val">${fmt(needNominal)}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
-          <span class="math-val ${needRealClass}">${fmt(needReal)}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">EPF balance needed at retirement to sustain this lifestyle</span>
-          <span class="math-val ${requiredBalanceClass}">${fmt(epfNeededForLifestyle)}</span>
-        </div>
-      </div>
-
-      <div class="card danger-card">
-        <div class="card-head">The retirement gap</div>
-        <div class="math-row">
-          <span class="math-key">Monthly gap — nominal (today's RM)</span>
-          <span class="math-val neg">−${fmt(Math.max(0, gapNominal))}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Monthly gap — real (inflation-adjusted)</span>
-          <span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Total nominal gap over ${retireDuration} years</span>
-          <span class="math-val neg">−${fmt(totalGapNominal)}</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Total real gap over ${retireDuration} years</span>
-          <span class="math-val neg">−${fmt(totalGapReal)}</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">EPF coverage of real need</span>
-          <span class="math-val ${coverPctReal < 50 ? 'neg' : 'warn'}">${coverPctReal}%</span>
-        </div>
-      </div>
-
-      <div class="card">
         <div class="card-head">Will Your EPF Meet Your Retirement Goal?</div>
         <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:12px;">
           Your retirement goal is <strong>${fmt(needReal)}/mo</strong> in future money. Your EPF is projected to provide <strong>${fmt(epfMonthly)}/mo</strong>, covering <strong>${coverPctReal}%</strong> of this goal.
@@ -1062,9 +997,80 @@
           <div class="verdict-body ${actualVerdictClass}">${actualVerdictBody}</div>
         </div>
       </div>
-      
-      ${inflTableHtml}
 
+      <details>
+        <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 10px 0; margin-bottom:10px;">
+          <span>📊 View Financial Data Breakdown</span>
+        </summary>
+        
+        <div class="card danger-card">
+          <div class="card-head">The retirement gap</div>
+          <div class="math-row">
+            <span class="math-key">Monthly gap — nominal (today's RM)</span>
+            <span class="math-val neg">−${fmt(Math.max(0, gapNominal))}/mo</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">Monthly gap — real (inflation-adjusted)</span>
+            <span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">Total nominal gap over ${retireDuration} years</span>
+            <span class="math-val neg">−${fmt(totalGapNominal)}</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">Total real gap over ${retireDuration} years</span>
+            <span class="math-val neg">−${fmt(totalGapReal)}</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">EPF coverage of real need</span>
+            <span class="math-val ${coverPctReal < 50 ? 'neg' : 'warn'}">${coverPctReal}%</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">What your client needs</div>
+          <div class="math-row">
+            <span class="math-key">Lifestyle target — today's ringgit (${pct(lifePct * 100)} of ${fmt(income)})</span>
+            <span class="math-val">${fmt(needNominal)}/mo</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
+            <span class="math-val ${needRealClass}">${fmt(needReal)}/mo</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">EPF balance needed at retirement to sustain this lifestyle</span>
+            <span class="math-val ${requiredBalanceClass}">${fmt(epfNeededForLifestyle)}</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">Projected EPF at retirement</div>
+          <div class="math-row">
+            <span class="math-key">Projected EPF balance at age ${retireAge}</span>
+            <span class="math-val pos">${fmt(epfAtRetire)}</span>
+          </div>
+          <div class="math-row">
+            <span class="math-key">Monthly payout — annuity method (first year's annual return ÷ 12)</span>
+            <span class="math-val pos">${fmt(epfMonthly)}/mo</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">Assumptions used</div>
+          <div class="assumption-row"><span>Monthly income</span><span>${fmt(income)}/mo</span></div>
+          <div class="assumption-row"><span>EPF balance today</span><span>${fmt(epfBal)}</span></div>
+          <div class="assumption-row"><span>Years to retirement</span><span>${yearsToRetire} years (age ${age} → ${retireAge})</span></div>
+          <div class="assumption-row"><span>Retirement duration</span><span>${retireDuration} years (age ${retireAge} → ${lifeExp})</span></div>
+          <div class="assumption-row"><span>EPF dividend rate (accumulation)</span><span>${fmtD(epfDivVal)}/yr</span></div>
+          <div class="assumption-row"><span>Post-retirement return rate (drawdown)</span><span>${fmtD(postRetireVal)}/yr</span></div>
+          <div class="assumption-row"><span>Salary growth</span><span>${fmtD(salGrowthVal)}/yr</span></div>
+          <div class="assumption-row"><span>Inflation rate</span><span>${fmtD(inflationVal)}/yr</span></div>
+          <div class="assumption-row"><span>Lifestyle target</span><span>${pct(lifePct * 100)} of income</span></div>
+        </div>
+
+        ${inflTableHtml}
+      </details>
+      
       <div class="disclaimer">
         Projection assumes consistent EPF contributions on a growing salary, EPF dividend at ${fmtD(epfDivVal)}/year during accumulation, and ${fmtD(postRetireVal)} post-retirement return during drawdown (annuity method). Inflation at ${fmtD(inflationVal)}/year applied to lifestyle cost only. EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%). Results are illustrative — not financial advice. Actual EPF balance may differ based on contribution history, withdrawals, and dividend performance.
       </div>
