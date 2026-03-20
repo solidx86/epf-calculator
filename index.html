@@ -364,6 +364,22 @@
       height: 100%;
       display: inline-block;
       float: left;
+      position: relative;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 600;
+      text-shadow: 0 0 2px rgba(0,0,0,.4);
+    }
+
+    .bar-seg span {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      font-size: 11px;
+      line-height: 1;
+      pointer-events: none;
     }
 
     .bar-legend {
@@ -371,6 +387,17 @@
       gap: 16px;
       flex-wrap: wrap;
       margin-top: 8px;
+    }
+
+    .bar-help {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      line-height: 1.4;
+      background: rgba(0, 0, 0, 0.03);
+      border-left: 3px solid var(--blue);
+      padding: 6px 10px;
+      border-radius: 6px;
     }
 
     .leg {
@@ -681,6 +708,8 @@
       const n = retireDuration * 12;
       // Monthly payout — annuity method: first year's annual return divided by 12
       const epfMonthly = (epfAtRetire * postRetireRate) / 12;
+      const actualLifestyleToday = epfMonthly / inflFactor;
+      const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
 
       // --- Gaps ---
       const gapNominal = needNominal - epfMonthly;
@@ -802,6 +831,22 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-head">Retirement lifestyle in today's money</div>
+        <div class="math-row">
+          <span class="math-key">Desired lifestyle (today's money)</span>
+          <span class="math-val">${fmt(needNominal)}/mo</span>
+        </div>
+        <div class="math-row">
+          <span class="math-key">Actual sustainable lifestyle from EPF (today's money)</span>
+          <span class="math-val pos">${fmt(actualLifestyleToday)}/mo</span>
+        </div>
+        <div class="math-row">
+          <span class="math-key">Actual lifestyle vs current salary</span>
+          <span class="math-val ${actualLifestylePctOfSalary < 70 ? 'neg' : actualLifestylePctOfSalary < 100 ? 'warn' : 'pos'}">${actualLifestylePctOfSalary.toFixed(1)}%</span>
+        </div>
+      </div>
+
       <div class="card danger-card">
         <div class="card-head">The retirement gap</div>
         <div class="math-row">
@@ -827,15 +872,29 @@
       </div>
 
       <div class="bar-wrap">
-        <div class="bar-lbl"><span>EPF covers (of real need)</span><span>${coverPctReal}%</span></div>
+        <div class="bar-lbl"><span>EPF Coverage (of real need)</span><span>${coverPctReal}%</span></div>
         <div class="bar-track">
-          <div class="bar-seg" style="width:${Math.min(coverageReal * 100, 100).toFixed(1)}%;background:var(--blue)"></div>
-          <div class="bar-seg" style="width:${Math.max(0, Math.min((1 - coverageReal) * 100, 100)).toFixed(1)}%;background:var(--amber)"></div>
+          <div class="bar-seg" style="width:${Math.min(coverageReal * 100, 100).toFixed(1)}%;background:var(--blue)"><span>${fmt(epfMonthly)}/mo</span></div>
+          <div class="bar-seg" style="width:${Math.max(0, Math.min((1 - coverageReal) * 100, 100)).toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, needReal - epfMonthly))}/mo</span></div>
         </div>
         <div class="bar-legend">
           <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>EPF covers</div>
           <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Gap — needs supplementary plan</div>
         </div>
+        <div class="bar-help">Blue is what EPF can sustainably pay. Amber is what must come from alternative savings or investments.</div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-lbl"><span>Actual Retirement Lifestyle Coverage (Compared to Today's Salary)</span><span>${actualLifestylePctOfSalary.toFixed(1)}%</span></div>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:${Math.min(actualLifestylePctOfSalary, 100).toFixed(1)}%;background:var(--green)"><span>${fmt(actualLifestyleToday)}/mo</span></div>
+          <div class="bar-seg" style="width:${Math.max(0, (100 - Math.min(actualLifestylePctOfSalary, 100))).toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, income - actualLifestyleToday))}/mo</span></div>
+        </div>
+        <div class="bar-legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Actual sustainable</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Gap — needs supplementary plan</div>
+        </div>
+        <div class="bar-help">Green is monthly retirement lifestyle EPF can cover in today’s ringgit. Amber is remaining shortfall against current salary level.</div>
       </div>
 
       <div class="split-grid">
@@ -859,6 +918,8 @@
           <div class="split-main" style="color:var(--color-text-warning)">${fmt(totalGapReal)}</div>
           <div class="split-sub">over ${retireDuration}-yr retirement</div>
         </div>
+
+
       </div>
 
       <div class="verdict-box ${verdictClass}">
