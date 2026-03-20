@@ -931,8 +931,11 @@
       </div>
 
       <div class="card">
-        <div class="card-head">EPF Coverage (of real need) @ ${coverPctReal}% (Ideal: 100%)</div>
-        <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows how much of the inflation-adjusted retirement income need EPF alone can sustainably pay at retirement.</div>
+        <div class="card-head">Will Your EPF Meet Your Retirement Goal?</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:12px;">
+          Your retirement goal is <strong>${fmt(needReal)}/mo</strong> in future money. Your EPF is projected to provide <strong>${fmt(epfMonthly)}/mo</strong>, covering <strong>${coverPctReal}%</strong> of this goal.
+        </div>
+        <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This shows if your EPF savings will be enough for your desired lifestyle when you retire, after accounting for inflation.</div>
         <div class="bar-wrap">
           <div class="bar-track">
           ${hasFullCoverage
@@ -978,8 +981,11 @@
       </div>
 
       <div class="card">
-        <div class="card-head">Desired/Target Retirement Lifestyle Coverage @ ${actualLifestylePctOfSalary.toFixed(1)}% (Target: ${(lifePct * 100).toFixed(0)}%)</div>
-        <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows the EPF-supported retirement payout in today’s ringgit as a percentage of current salary, so you can compare purchasing power directly.</div>
+        <div class="card-head">Your Retirement Purchasing Power</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:12px;">
+          Your EPF is projected to provide for <strong>${actualLifestylePctOfSalary.toFixed(1)}%</strong> of your current lifestyle, against your target of <strong>${(lifePct * 100).toFixed(0)}%</strong>.
+        </div>
+        <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows your projected EPF payout in today’s money. It helps you understand what your purchasing power in retirement will feel like compared to your life today.</div>
         <div class="bar-wrap">
           <div class="bar-track">
             <div class="bar-seg" style="width:${lifestyleBarGreenWidth.toFixed(1)}%;background:var(--green)"></div>
