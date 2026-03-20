@@ -725,7 +725,7 @@
       const finalSalary = income * Math.pow(1 + salGrowth, yearsToRetire);
 
       // --- Lifestyle needs ---
-      const needNominal = income * lifePct;
+      const needCurrent = income * lifePct;
       const inflFactor = Math.pow(1 + inflation, yearsToRetire);
       const needReal = income * lifePct * inflFactor;
 
@@ -745,7 +745,7 @@
 
       const actualLifestyleToday = epfMonthly / inflFactor;
       const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
-      const desiredLifestyleToday = needNominal;
+      const desiredLifestyleToday = needCurrent;
       const gapToRetirementLifestyle = Math.max(0, desiredLifestyleToday - actualLifestyleToday);
       const hasLifestyleTargetCoverage = actualLifestyleToday >= desiredLifestyleToday;
       const lifestyleTargetSurplus = hasLifestyleTargetCoverage ? actualLifestyleToday - desiredLifestyleToday : 0;
@@ -776,9 +776,7 @@
       }
 
       // --- Gaps ---
-      const gapNominal = needNominal - epfMonthly;
       const gapReal = needReal - epfMonthly;
-      const totalGapNominal = Math.max(0, gapNominal) * 12 * retireDuration;
       const totalGapReal = Math.max(0, gapReal) * 12 * retireDuration;
 
       // --- Coverage ratios ---
@@ -1140,16 +1138,8 @@
         <div class="card danger-card">
           <div class="card-head">The retirement gap</div>
           <div class="math-row">
-            <span class="math-key">Monthly gap — nominal (today's RM)</span>
-            <span class="math-val neg">−${fmt(Math.max(0, gapNominal))}/mo</span>
-          </div>
-          <div class="math-row">
             <span class="math-key">Monthly gap — real (inflation-adjusted)</span>
             <span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span>
-          </div>
-          <div class="math-row">
-            <span class="math-key">Total nominal gap over ${retireDuration} years</span>
-            <span class="math-val neg">−${fmt(totalGapNominal)}</span>
           </div>
           <div class="math-row">
             <span class="math-key">Total real gap over ${retireDuration} years</span>
@@ -1165,7 +1155,7 @@
           <div class="card-head">What You Need</div>
           <div class="math-row">
             <span class="math-key">Lifestyle target — today's ringgit (${pct(lifePct * 100)} of ${fmt(income)})</span>
-            <span class="math-val">${fmt(needNominal)}/mo</span>
+            <span class="math-val">${fmt(needCurrent)}/mo</span>
           </div>
           <div class="math-row">
             <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
@@ -1221,7 +1211,7 @@
         <div class="math-row"><span class="math-key">Step 4 — Salary grows at ${fmtD(salGrowthVal)}/yr × ${yearsToRetire} yrs → salary at retirement</span><span class="math-val">${fmt(finalSalary)}/mo</span></div>
         <div class="math-row"><span class="math-key">Step 5 — Projected EPF balance at age ${retireAge} (year-by-year compounding)</span><span class="math-val pos">${fmt(epfAtRetire)}</span></div>
         <div class="math-row"><span class="math-key">Step 6 — Initial Monthly Payout (Growing Annuity, inflation-adjusted annually)</span><span class="math-val pos">${fmt(epfMonthly)}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 7 — Lifestyle need today (${pct(lifePct * 100)} × ${fmt(income)})</span><span class="math-val">${fmt(needNominal)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 7 — Lifestyle need today (${pct(lifePct * 100)} × ${fmt(income)})</span><span class="math-val">${fmt(needCurrent)}/mo</span></div>
         <div class="math-row"><span class="math-key">Step 8 — Inflation factor over ${yearsToRetire} yrs at ${fmtD(inflationVal)} (×${cross(inflFactor)})</span><span class="math-val">${cross(inflFactor)}</span></div>
         <div class="math-row"><span class="math-key">Step 9 — Real lifestyle need at retirement (Step 7 × Step 8)</span><span class="math-val warn">${fmt(needReal)}/mo</span></div>
         <div class="math-row"><span class="math-key">Step 10 — Real monthly gap (Step 9 − Step 6)</span><span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span></div>
