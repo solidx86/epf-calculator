@@ -710,6 +710,9 @@
       const epfMonthly = (epfAtRetire * postRetireRate) / 12;
       const actualLifestyleToday = epfMonthly / inflFactor;
       const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
+      const desiredLifestyleToday = needNominal;
+      const gapToRetirementLifestyle = Math.max(0, desiredLifestyleToday - actualLifestyleToday);
+      const remainingSalaryGap = Math.max(0, income - desiredLifestyleToday);
 
       // --- Gaps ---
       const gapNominal = needNominal - epfMonthly;
@@ -887,10 +890,9 @@
             <div class="bar-seg" style="width:${Math.max(0, Math.min((1 - coverageReal) * 100, 100)).toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, needReal - epfMonthly))}/mo</span></div>
           </div>
           <div class="bar-legend">
-            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>EPF covers</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Gap — needs supplementary plan</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div><strong>EPF payout</strong> – inflation-adjusted monthly income from EPF</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Remaining need</strong> – monthly shortfall to desired retirement lifestyle</div>
           </div>
-          <div class="bar-help">Blue is what EPF can sustainably pay. Amber is what must come from alternative savings or investments.</div>
         </div>
         <div class="verdict-box ${verdictClass}">
           <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
@@ -903,14 +905,15 @@
         <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows the EPF-supported retirement payout in today’s ringgit as a percentage of current salary, so you can compare purchasing power directly.</div>
         <div class="bar-wrap">
           <div class="bar-track">
-            <div class="bar-seg" style="width:${Math.min(actualLifestylePctOfSalary, 100).toFixed(1)}%;background:var(--green)"><span>${fmt(actualLifestyleToday)}/mo</span></div>
-            <div class="bar-seg" style="width:${Math.max(0, (100 - Math.min(actualLifestylePctOfSalary, 100))).toFixed(1)}%;background:var(--amber)"><span>${fmt(Math.max(0, income - actualLifestyleToday))}/mo</span></div>
+            <div class="bar-seg" style="width:${Math.min((actualLifestyleToday / income) * 100, 100).toFixed(1)}%;background:var(--green)"><span>${fmt(actualLifestyleToday)}/mo</span></div>
+            <div class="bar-seg" style="width:${Math.min((gapToRetirementLifestyle / income) * 100, 100).toFixed(1)}%;background:var(--amber)"><span>${fmt(gapToRetirementLifestyle)}/mo</span></div>
+            <div class="bar-seg" style="width:${Math.max(0, (remainingSalaryGap / income) * 100).toFixed(1)}%;background:var(--red)"><span>${fmt(remainingSalaryGap)}/mo</span></div>
           </div>
           <div class="bar-legend">
-            <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Actual sustainable</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Gap — needs supplementary plan</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--green)"></div><strong>EPF-funded income</strong> – monthly retirement payout in today’s money</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><strong>Lifestyle gap</strong> – shortfall to target retirement lifestyle today</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--red)"></div><strong>Salary let-go</strong> – remaining portion of salary effectively given up</div>
           </div>
-          <div class="bar-help">Green is monthly retirement lifestyle EPF can cover in today’s ringgit. Amber is remaining shortfall against current salary level.</div>
         </div>
         <div class="verdict-box ${actualVerdictClass}">
           <div class="verdict-title ${actualVerdictClass}">${actualVerdictTitle}</div>
