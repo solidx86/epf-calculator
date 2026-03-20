@@ -718,9 +718,7 @@
       const totalGapReal = Math.max(0, gapReal) * 12 * retireDuration;
 
       // --- Coverage ratios ---
-      const coverageNominal = Math.min(epfMonthly / needNominal, 1);
       const coverageReal = Math.min(epfMonthly / needReal, 1);
-      const coverPctNom = Math.round(coverageNominal * 100);
       const coverPctReal = Math.round(coverageReal * 100);
 
       // --- Depletion estimate (worst-case: no post-retire growth) ---
@@ -754,6 +752,11 @@
       } else {
         W0 = epfAtRetire * (annualReturn - annualInfl) / (1 - Math.pow((1 + annualInfl) / (1 + annualReturn), nYears));
       }
+      const requiredAnnualNeed = needReal * 12;
+      const epfNeededForLifestyle = Math.abs(annualReturn - annualInfl) < 1e-8
+        ? requiredAnnualNeed * nYears
+        : requiredAnnualNeed * (1 - Math.pow((1 + annualInfl) / (1 + annualReturn), nYears)) / (annualReturn - annualInfl);
+      const requiredBalanceClass = epfAtRetire >= epfNeededForLifestyle ? 'pos' : 'neg';
       // Build table of withdrawals
       let inflTable = [];
       let totalDrawn = 0;
@@ -829,21 +832,9 @@
           <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
           <span class="math-val warn">${fmt(needReal)}/mo</span>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">Retirement lifestyle in today's money</div>
         <div class="math-row">
-          <span class="math-key">Desired lifestyle (today's money)</span>
-          <span class="math-val">${fmt(needNominal)}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Actual sustainable lifestyle from EPF (today's money)</span>
-          <span class="math-val pos">${fmt(actualLifestyleToday)}/mo</span>
-        </div>
-        <div class="math-row">
-          <span class="math-key">Actual lifestyle vs current salary</span>
-          <span class="math-val ${actualLifestylePctOfSalary < 70 ? 'neg' : actualLifestylePctOfSalary < 100 ? 'warn' : 'pos'}">${actualLifestylePctOfSalary.toFixed(1)}%</span>
+          <span class="math-key">EPF balance needed at retirement to sustain this lifestyle</span>
+          <span class="math-val ${requiredBalanceClass}">${fmt(epfNeededForLifestyle)}</span>
         </div>
       </div>
 
@@ -884,6 +875,11 @@
         <div class="bar-help">Blue is what EPF can sustainably pay. Amber is what must come from alternative savings or investments.</div>
       </div>
 
+      <div class="verdict-box ${verdictClass}">
+        <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
+        <div class="verdict-body ${verdictClass}">${verdictBody}</div>
+      </div>
+
       <div class="bar-wrap">
         <div class="bar-lbl"><span>Actual Retirement Lifestyle Coverage (Compared to Today's Salary)</span><span>${actualLifestylePctOfSalary.toFixed(1)}%</span></div>
         <div class="bar-track">
@@ -896,36 +892,7 @@
         </div>
         <div class="bar-help">Green is monthly retirement lifestyle EPF can cover in today’s ringgit. Amber is remaining shortfall against current salary level.</div>
       </div>
-
-      <div class="split-grid">
-        <div class="split-card">
-          <div class="split-label">Monthly gap (nominal)</div>
-          <div class="split-main" style="color:var(--color-text-danger)">${fmt(Math.max(0, gapNominal))}</div>
-          <div class="split-sub">today's ringgit / month</div>
-        </div>
-        <div class="split-card">
-          <div class="split-label">Monthly gap (real)</div>
-          <div class="split-main" style="color:var(--color-text-danger)">${fmt(Math.max(0, gapReal))}</div>
-          <div class="split-sub">future ringgit / month</div>
-        </div>
-        <div class="split-card">
-          <div class="split-label">Total gap (nominal)</div>
-          <div class="split-main" style="color:var(--color-text-warning)">${fmt(totalGapNominal)}</div>
-          <div class="split-sub">over ${retireDuration}-yr retirement</div>
-        </div>
-        <div class="split-card">
-          <div class="split-label">Total gap (real)</div>
-          <div class="split-main" style="color:var(--color-text-warning)">${fmt(totalGapReal)}</div>
-          <div class="split-sub">over ${retireDuration}-yr retirement</div>
-        </div>
-
-
-      </div>
-
-      <div class="verdict-box ${verdictClass}">
-        <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
-        <div class="verdict-body ${verdictClass}">${verdictBody}</div>
-      </div>
+      
       ${inflTableHtml}
 
       <div class="disclaimer">
