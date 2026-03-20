@@ -694,13 +694,23 @@
       const salGrowthVal = document.getElementById('salaryGrowth').value;
       const postRetireVal = document.getElementById('postRetireRate').value;
 
+      // Validation
+      const errors = [];
+      if (age < 20) errors.push("Current age must be at least 20.");
+      if (income <= 0) errors.push("Monthly income must be greater than RM0.");
+      if (epfBal < 0) errors.push("EPF balance cannot be negative.");
+
       const yearsToRetire = retireAge - age;
       const retireDuration = lifeExp - retireAge;
 
-      if (yearsToRetire <= 0 || retireDuration <= 0) {
+      if (yearsToRetire <= 0) errors.push("Retirement age must be greater than current age.");
+      if (retireDuration <= 0) errors.push("Life expectancy must be greater than retirement age.");
+
+      if (errors.length > 0) {
         const r = document.getElementById('results');
         r.style.display = 'block';
-        r.innerHTML = '<div class="card"><div class="card-head" style="color:var(--color-text-danger)">Please check your age, retirement age, and life expectancy inputs.</div></div>';
+        r.innerHTML = `<div class="card danger-card"><div class="card-head" style="color:var(--color-text-danger)">Please check your inputs</div><ul style="margin-left:20px; color:var(--color-text-danger); font-size:13px; line-height:1.6">${errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
+        r.scrollIntoView({ behavior: 'smooth' });
         return;
       }
 
