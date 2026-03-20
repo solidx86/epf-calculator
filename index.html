@@ -549,10 +549,6 @@
           <input type="number" id="age" value="35" min="20" max="59">
         </div>
         <div class="field">
-          <label>Retirement age</label>
-          <input type="number" id="retireAge" value="60" min="50" max="70">
-        </div>
-        <div class="field">
           <label>Current monthly income (RM)</label>
           <input type="number" id="income" value="5000" min="1000">
         </div>
@@ -562,17 +558,30 @@
           <div class="field-note">From myEPF app or annual statement</div>
         </div>
       </div>
-      <div class="field-grid">
-        <div class="field">
-          <label>Life expectancy</label>
-          <input type="number" id="lifeExp" value="80" min="65" max="95">
+
+      <details>
+        <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">
+          <span>⚙️ Customize Retirement Age & Lifestyle</span>
+        </summary>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--color-border);">
+          <div class="field-grid">
+            <div class="field">
+              <label>Retirement age</label>
+              <input type="number" id="retireAge" value="60" min="50" max="70">
+            </div>
+            <div class="field">
+              <label>Life expectancy</label>
+              <input type="number" id="lifeExp" value="80" min="65" max="95">
+              <div class="field-note">Malaysian Avg: ~75 years. Recommended: 80+ (expect longer due to medical advancement).</div>
+            </div>
+            <div class="field">
+              <label>Desired retirement lifestyle (% of income)</label>
+              <input type="number" id="lifestylePct" value="70" min="50" max="100">
+              <div class="field-note">70% = maintain current lifestyle (World Bank benchmark)</div>
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label>Desired retirement lifestyle (% of income)</label>
-          <input type="number" id="lifestylePct" value="70" min="50" max="100">
-          <div class="field-note">70% = maintain current lifestyle (World Bank benchmark)</div>
-        </div>
-      </div>
+      </details>
     </div>
 
     <!-- ASSUMPTIONS -->
