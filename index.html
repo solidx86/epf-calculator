@@ -888,6 +888,14 @@
         </div>`;
       }
 
+      // --- Lead Gen: WhatsApp Link Generator ---
+      // TODO: Replace with your actual WhatsApp number (format: 601xxxxxxxxx)
+      const waPhone = "601173381713"; 
+      const waText = hasFullCoverage 
+        ? `Hi, I used your EPF calculator. I'm on track with a surplus of ${fmt(coverageSurplus)}/mo but I'd like to discuss optimizing my portfolio.`
+        : `Hi, I used your EPF calculator. I found a retirement gap of ${fmt(totalGapReal)}. I'd like a free consultation on how to close it with Unit Trusts.`;
+      const waLink = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
+
       // --- Render ---
       const inflTableHtml = `
         <div class="card">
@@ -1006,6 +1014,20 @@
           <div class="verdict-title ${actualVerdictClass}">${actualVerdictTitle}</div>
           <div class="verdict-body ${actualVerdictClass}">${actualVerdictBody}</div>
         </div>
+      </div>
+
+      <!-- LEAD MAGNET CTA -->
+      <div class="card" style="border: 1px solid var(--blue); background: var(--color-bg-info);">
+        <div class="card-head" style="color: var(--color-text-info);">🚀 Next Step: Take Action on Your Future</div>
+        <div style="font-size:13px; line-height:1.6; color: var(--color-text-primary); margin-bottom: 15px;">
+          ${hasFullCoverage 
+            ? "You are in a strong position! However, parking your surplus in generic funds might mean missing out on higher potential returns. Let's optimize your portfolio." 
+            : "Don't panic. As a Licensed Public Mutual consultant, I can help you structure a personalized investment plan to bridge this <strong>" + fmt(totalGapReal) + "</strong> shortfall."}
+        </div>
+        <a href="${waLink}" target="_blank" class="calc-btn" style="text-decoration:none; display:block; text-align:center; background: var(--blue); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          <span style="margin-right:6px">💬</span> WhatsApp Me for a Free Consultation
+        </a>
+        <div style="text-align:center; font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">No obligation. Just clarity.</div>
       </div>
 
       <details class="card" style="background:var(--color-bg-secondary);">
