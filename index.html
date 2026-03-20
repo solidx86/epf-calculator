@@ -768,45 +768,51 @@
 
       // --- Verdict for EPF coverage ---
       let verdictClass, verdictTitle, verdictBody;
-      if (coverageReal >= 1) {
+      if (coverageReal >= 1.1) {
         verdictClass = 'ok';
-        verdictTitle = 'Excellent result — EPF fully covers your real retirement need.';
-        verdictBody = `EPF covers ${coverPctReal}% of your client's inflation-adjusted retirement need and has a surplus of ${fmt(coverageSurplus)}/mo above the target. This means EPF alone can sustain the projected lifestyle and still provide a buffer for unexpected costs.`;
+        verdictTitle = 'Excellent Position: EPF Payout Exceeds Goal';
+        verdictBody = `Your EPF is projected to provide more than you need, with a surplus of ${fmt(coverageSurplus)}/mo. This creates a strong financial cushion for unexpected expenses or a more comfortable retirement.`;
+      } else if (coverageReal >= 1) {
+        verdictClass = 'ok';
+        verdictTitle = 'Great News: EPF is on Track to Meet Your Goal';
+        verdictBody = `Your EPF is projected to fully cover your inflation-adjusted retirement goal. This is a solid foundation, but supplementary savings are always a good idea to protect against inflation or healthcare costs.`;
       } else if (coverageReal >= 0.70) {
-        verdictClass = 'ok';
-        verdictTitle = 'EPF is relatively adequate — inflation risk still present.';
-        verdictBody = `EPF covers approximately ${coverPctReal}% of your client's inflation-adjusted retirement need. This clears the minimum threshold, but does not account for healthcare cost escalation, family obligations, or lifestyle upgrades. Supplementary investing remains strongly advisable.`;
+        verdictClass = 'warn';
+        verdictTitle = 'Nearly There: A Small Gap to Your Goal';
+        verdictBody = `Your EPF covers a large part (${coverPctReal}%) of your retirement goal, but there's a small shortfall. A modest, consistent investment plan can help close this gap to ensure your desired lifestyle.`;
       } else if (coverageReal >= 0.45) {
         verdictClass = 'warn';
-        verdictTitle = `EPF covers only ${coverPctReal}% of the real retirement need.`;
-        verdictBody = `There is a meaningful gap between what EPF provides and what your client's lifestyle will cost at retirement. Without supplementary income, their standard of living will decline. A consistent unit trust investment plan can systematically close this gap.`;
+        verdictTitle = 'Action Required: A Moderate Gap to Your Goal';
+        verdictBody = `Your EPF is projected to cover about half (${coverPctReal}%) of your retirement needs. This indicates a significant gap that requires a clear investment strategy to avoid a reduced standard of living in retirement.`;
       } else {
         verdictClass = 'danger';
-        verdictTitle = `EPF covers only ${coverPctReal}% of the real retirement need.`;
-        verdictBody = `At current trajectory, EPF alone will fund your client's retirement lifestyle for approximately ${yearsSustained.toFixed(1)} years — running short around age ${depletionAge}. Without supplementary investing, the last ${Math.round(retireDuration - yearsSustained)} years of retirement face a serious funding shortfall.`;
+        verdictTitle = 'Urgent Action Required: A Major Funding Shortfall';
+        verdictBody = `At this rate, your EPF will only cover ${coverPctReal}% of your needs and could run out around age ${depletionAge}. A disciplined investment plan is essential to fund your retirement and avoid hardship.`;
       }
 
       // --- Verdict for Actual Retirement Lifestyle Coverage ---
       let actualVerdictClass, actualVerdictTitle, actualVerdictBody;
       const lifestyleTargetPct = lifePct * 100;
-      if (actualLifestylePctOfSalary >= lifestyleTargetPct) {
+      if (actualLifestylePctOfSalary >= lifestyleTargetPct * 1.1) {
         actualVerdictClass = 'ok';
-        actualVerdictTitle = 'Target achieved — EPF covers or exceeds desired retirement lifestyle today.';
-        const surplusPct = actualLifestylePctOfSalary - lifestyleTargetPct;
-        const surplusText = surplusPct > 0.1 ? ` It provides a surplus of ${fmt(lifestyleTargetSurplus)}/mo, which is ${surplusPct.toFixed(1)} percentage points above your target.` : 'This meets your target exactly.';
-        actualVerdictBody = `Your client can sustain ${actualLifestylePctOfSalary.toFixed(1)}% of current salary in retirement from EPF alone, which meets the desired lifestyle target (${lifestyleTargetPct.toFixed(0)}%). ${surplusText} This is a strong position, and preserving this outcome should remain a priority.`;
-      } else if (actualLifestylePctOfSalary >= 70) {
+        actualVerdictTitle = 'Excellent: Purchasing Power Exceeds Your Target';
+        actualVerdictBody = `Your projected retirement income can support more than your target lifestyle. You'll have ${actualLifestylePctOfSalary.toFixed(1)}% of your current purchasing power, which is a great position to be in.`;
+      } else if (actualLifestylePctOfSalary >= lifestyleTargetPct) {
         actualVerdictClass = 'ok';
-        actualVerdictTitle = 'Strong result — EPF can support a good portion of today\'s salary in retirement.';
-        actualVerdictBody = `Your client can sustain ${actualLifestylePctOfSalary.toFixed(1)}% of current salary in retirement from EPF alone. This is a strong baseline, but adding retirement savings still improves resilience against longer life, inflation, and healthcare.`;
-      } else if (actualLifestylePctOfSalary >= 45) {
+        actualVerdictTitle = 'On Track: Purchasing Power Meets Your Target';
+        actualVerdictBody = `Good news. Your projected retirement income meets your target of ${lifestyleTargetPct.toFixed(0)}% of your current purchasing power. This means you're on track to maintain your desired lifestyle.`;
+      } else if (actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7) {
         actualVerdictClass = 'warn';
-        actualVerdictTitle = `Moderate coverage: EPF supports ${actualLifestylePctOfSalary.toFixed(1)}% of today's salary.`;
-        actualVerdictBody = `This indicates a meaningful shortfall versus current purchasing power. A clear action is to add regular investments to close the remaining lifestyle gap and reduce dependency on salary until retirement.`;
+        actualVerdictTitle = 'Small Gap: Purchasing Power is Below Target';
+        actualVerdictBody = `Your retirement income will support ${actualLifestylePctOfSalary.toFixed(1)}% of your current purchasing power, which is below your ${lifestyleTargetPct.toFixed(0)}% target. There is a small but important gap to fill.`;
+      } else if (actualLifestylePctOfSalary >= lifestyleTargetPct * 0.45) {
+        actualVerdictClass = 'warn';
+        actualVerdictTitle = 'Action Needed: Significant Gap in Purchasing Power';
+        actualVerdictBody = `Your retirement income will only support about half of your desired lifestyle. This is a significant gap compared to your ${lifestyleTargetPct.toFixed(0)}% target and requires a clear plan to address.`;
       } else {
         actualVerdictClass = 'danger';
-        actualVerdictTitle = `Low coverage: EPF supports only ${actualLifestylePctOfSalary.toFixed(1)}% of today's salary.`;
-        actualVerdictBody = `EPF alone would fund only a small share of current salary-based lifestyle in retirement. This strongly suggests a top-up plan is required to avoid materially reduced living standards.`;
+        actualVerdictTitle = 'Urgent: Major Gap in Purchasing Power';
+        actualVerdictBody = `There is a major shortfall between your projected retirement income (${actualLifestylePctOfSalary.toFixed(1)}% of current purchasing power) and your target of ${lifestyleTargetPct.toFixed(0)}%. An investment plan is critical to avoid a drastic change in lifestyle.`;
       }
 
       // --- Inflation-adjusted withdrawals (growing annuity) ---
@@ -839,6 +845,8 @@
         epfBalLeft = balAfter;
         totalDrawn += annual;
       }
+
+      const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
 
       // --- Render ---
       const inflTableHtml = `
@@ -898,7 +906,7 @@
         </div>
         <div class="math-row">
           <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
-          <span class="math-val warn">${fmt(needReal)}/mo</span>
+          <span class="math-val ${needRealClass}">${fmt(needReal)}/mo</span>
         </div>
         <div class="math-row">
           <span class="math-key">EPF balance needed at retirement to sustain this lifestyle</span>
