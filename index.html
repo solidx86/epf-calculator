@@ -577,35 +577,41 @@
 
     <!-- ASSUMPTIONS -->
     <div class="panel">
-      <div class="section-head">Assumptions (editable)</div>
-      <div class="field-grid">
-        <div class="field">
-          <label>EPF annual dividend rate (%)</label>
-          <input type="number" id="epfDiv" value="5" min="1" max="10" step="0.1">
-          <div class="field-note">Default 5% — matches inflation assumption</div>
+      <details>
+        <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">
+          <span>⚙️ Advanced: Edit Inflation & Growth Assumptions</span>
+        </summary>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--color-border);">
+          <div class="field-grid">
+            <div class="field">
+              <label>EPF annual dividend rate (%)</label>
+              <input type="number" id="epfDiv" value="5" min="1" max="10" step="0.1">
+              <div class="field-note">Default 5% — matches inflation assumption</div>
+            </div>
+            <div class="field">
+              <label>Annual salary growth (%)</label>
+              <input type="number" id="salaryGrowth" value="3" min="0" max="10" step="0.1">
+            </div>
+            <div class="field">
+              <label>Inflation rate (%)</label>
+              <input type="number" id="inflation" value="5" min="1" max="10" step="0.1">
+              <div class="field-note">Default 5% — conservative lifestyle cost escalation</div>
+            </div>
+            <div class="field">
+              <label>EPF contribution rate (employee + employer %)</label>
+              <input type="number" id="epfContrib" value="23" min="11" max="30" step="0.5">
+              <div class="field-note">Default: 11% employee + 12% employer = 23%</div>
+            </div>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Post-retirement return rate (%)</label>
+              <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1">
+              <div class="field-note">Return earned on EPF balance during retirement drawdown</div>
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label>Annual salary growth (%)</label>
-          <input type="number" id="salaryGrowth" value="3" min="0" max="10" step="0.1">
-        </div>
-        <div class="field">
-          <label>Inflation rate (%)</label>
-          <input type="number" id="inflation" value="5" min="1" max="10" step="0.1">
-          <div class="field-note">Default 5% — conservative lifestyle cost escalation</div>
-        </div>
-        <div class="field">
-          <label>EPF contribution rate (employee + employer %)</label>
-          <input type="number" id="epfContrib" value="23" min="11" max="30" step="0.5">
-          <div class="field-note">Default: 11% employee + 12% employer = 23%</div>
-        </div>
-      </div>
-      <div class="field-grid">
-        <div class="field">
-          <label>Post-retirement return rate (%)</label>
-          <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1">
-          <div class="field-note">Return earned on EPF balance during retirement drawdown</div>
-        </div>
-      </div>
+      </details>
     </div>
 
     <div class="btn-row">
@@ -848,6 +854,21 @@
 
       const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
 
+      // --- Wake Up Call: Depletion Alert ---
+      let depletionAlertHtml = '';
+      if (depletionAge < lifeExp) {
+        const gapYears = lifeExp - depletionAge;
+        depletionAlertHtml = `
+        <div class="card" style="background:var(--color-bg-danger); border:1px solid var(--color-border-danger);">
+          <div class="card-head" style="color:var(--color-text-danger); font-size:1.1rem;">⚠️ CRITICAL WARNING</div>
+          <div style="font-size:14px; line-height:1.6; color:var(--color-text-danger);">
+            Based on your desired lifestyle, your EPF money is projected to <strong>run out at age ${depletionAge}</strong>.
+            <br><br>
+            You are facing <strong>${gapYears} years</strong> of retirement with <strong>ZERO income</strong> from your EPF.
+          </div>
+        </div>`;
+      }
+
       // --- Render ---
       const inflTableHtml = `
         <div class="card">
@@ -873,6 +894,9 @@
     </div>
 
     <div id="tab-summary">
+      
+      ${depletionAlertHtml}
+
       <div class="card">
         <div class="card-head">Assumptions used</div>
         <div class="assumption-row"><span>Monthly income</span><span>${fmt(income)}/mo</span></div>
@@ -1072,6 +1096,7 @@ The annuity method gives EPF the most favourable possible monthly payout by assu
       const el = document.getElementById('results');
       el.style.display = 'block';
       el.innerHTML = html;
+      el.scrollIntoView({ behavior: 'smooth' });
     }
 
     function showTab(tab, btn) {
