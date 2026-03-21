@@ -535,13 +535,14 @@
   <div class="page">
 
     <header>
-      <p class="header-sub">Enter your details to calculate how much of your retirement lifestyle EPF alone
-        can sustain — and quantify the gap that needs to be filled.</p>
+      <p class="header-tag">EPF Retirement Calculator</p>
+      <h1>Will Your EPF Be Enough to Retire On?</h1>
+      <p class="header-sub">Enter your details to see how much of your retirement your EPF savings can actually cover — and what the gap looks like in real money.</p>
     </header>
 
     <!-- CLIENT DETAILS -->
     <div class="panel">
-      <div class="section-head">Your Details</div>
+      <div class="section-head">About You</div>
       <div class="field-grid">
         <div class="field">
           <label>Current Age</label>
@@ -554,7 +555,7 @@
         <div class="field">
           <label>Current EPF Balance (RM)</label>
           <input type="number" id="epfBalance" value="200000" min="0">
-          <div class="field-note">From KWSP i-Akaun app or EPF annual statement</div>
+          <div class="field-note">Check your KWSP i-Akaun app or EPF annual statement</div>
         </div>
       </div>
 
@@ -564,7 +565,7 @@
         </summary>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--color-border);">
 
-          <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-secondary); margin-bottom:10px;">About You</div>
+          <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-secondary); margin-bottom:10px;">Retirement Plan</div>
           <div class="field-grid">
             <div class="field">
               <label>Retirement Age</label>
@@ -573,40 +574,40 @@
             <div class="field">
               <label>Life Expectancy</label>
               <input type="number" id="lifeExp" value="80" min="65" max="95">
-              <div class="field-note">Malaysian Avg: ~75 years. Recommended: 80+ (expect longer due to medical advancement).</div>
+              <div class="field-note">Malaysian average is ~75. Plan for 80+ — people are living longer thanks to better healthcare.</div>
             </div>
             <div class="field">
-              <label>Desired Retirement Lifestyle (% of Income)</label>
+              <label>Target retirement income (% of current income)</label>
               <input type="number" id="lifestylePct" value="70" min="50" max="100">
-              <div class="field-note">70% = maintain current lifestyle (World Bank benchmark)</div>
+              <div class="field-note">70% means you want RM7,000/mo in retirement if you earn RM10,000/mo today. World Bank recommends 70% as the minimum to maintain your current lifestyle.</div>
             </div>
           </div>
 
           <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-secondary); margin-top:18px; margin-bottom:10px; padding-top:15px; border-top:0.5px solid var(--color-border);">Rates &amp; Assumptions</div>
           <div class="field-grid">
             <div class="field">
-              <label>EPF Annual Dividend Rate (%)</label>
+              <label>EPF yearly dividend rate (%)</label>
               <input type="number" id="epfDiv" value="5" min="1" max="10" step="0.1">
-              <div class="field-note">Default 5% — matches inflation assumption</div>
+              <div class="field-note">The annual return EPF pays on your savings while you're still working. Historical average is around 5–6%.</div>
             </div>
             <div class="field">
               <label>Annual Salary Growth (%)</label>
               <input type="number" id="salaryGrowth" value="3" min="0" max="10" step="0.1">
             </div>
             <div class="field">
-              <label>Inflation Rate (%)</label>
+              <label>Inflation rate (%)</label>
               <input type="number" id="inflation" value="4" min="3" max="6" step="0.1">
-              <div class="field-note">How much more expensive things get each year. At 4%, something that costs RM100 today will cost ~RM149 in 10 years.</div>
+              <div class="field-note">How fast prices rise each year. At 4%, RM100 today costs ~RM149 in 10 years — your money buys less over time.</div>
             </div>
             <div class="field">
-              <label>Employee EPF Contribution Rate (%)</label>
+              <label>Your EPF contribution rate (%)</label>
               <input type="number" id="employeeContrib" value="11" min="7" max="15" step="0.5">
-              <div class="field-note">Default: 11%. Employer rate is statutory (12-13% based on salary).</div>
+              <div class="field-note">Your share is 11% by default. Your employer adds another 12–13% on top (required by law) — both go into your EPF.</div>
             </div>
             <div class="field">
-              <label>Post-retirement Return Rate (%)</label>
+              <label>Return on EPF savings during retirement (%)</label>
               <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1">
-              <div class="field-note">Return earned on EPF balance during retirement drawdown</div>
+              <div class="field-note">Your remaining EPF balance keeps earning returns even as you withdraw. This is the assumed annual rate during retirement.</div>
             </div>
           </div>
 
@@ -615,15 +616,14 @@
     </div>
 
     <div class="btn-row">
-      <button class="calc-btn" onclick="calculate()">Calculate EPF Sustainability</button>
+      <button class="calc-btn" onclick="calculate()">Calculate My Retirement</button>
       <button class="reset-btn" onclick="resetCalc()">Reset</button>
     </div>
 
     <div id="results"></div>
 
     <footer>
-      Results are illustrative projections — not financial advice.<br>
-      EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%).
+      Results are illustrative projections — not financial advice.
     </footer>
 
   </div>
@@ -999,7 +999,7 @@
 
         investmentSectionHtml = `
         <div class="card" style="border-color: var(--color-border-info);">
-          <div class="card-head">📈 Closing the Gap: Supplementary Investment Plan</div>
+          <div class="card-head">📈 How to Close the Gap: Additional Investment Needed</div>
           <div style="font-size:13px; color:var(--color-text-secondary); line-height:1.6; margin-bottom:14px;">
             Your EPF alone won't fully fund your retirement lifestyle. Here's what it takes to close the gap with a separate investment vehicle — on top of your EPF.
           </div>
@@ -1007,17 +1007,17 @@
             <div class="split-card">
               <div class="split-label">Additional fund needed at retirement</div>
               <div class="split-main" style="color:var(--color-text-danger); font-size:15px;">${fmt(gapFundNeeded)}</div>
-              <div class="split-sub">To sustain your ${retireDuration}-yr lifestyle gap</div>
+              <div class="split-sub">To cover your monthly shortfall over ${retireDuration} years</div>
             </div>
             <div class="split-card">
               <div class="split-label">Est. monthly investment needed</div>
               <div class="split-main" style="color:var(--blue); font-size:15px;">${fmt(monthlyInvestNeeded)}/mo</div>
-              <div class="split-sub">Separate from EPF · 8% p.a. assumption*</div>
+              <div class="split-sub">On top of EPF · 8% per year assumed*</div>
             </div>
           </div>
 
           <div style="font-size:11px; font-weight:600; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; border-top: 0.5px solid var(--color-border); padding-top:12px;">
-            Growth projection · ${fmt(monthlyInvestNeeded)}/mo at 8% p.a. assumption · hover to explore
+            How your investment grows over time · ${fmt(monthlyInvestNeeded)}/mo at 8% per year · hover to explore
           </div>
 
           <div style="position:relative; background:var(--color-bg-secondary); border-radius:8px; padding:14px 8px 4px;">
@@ -1078,7 +1078,7 @@
           </div>
 
           <div style="padding:10px 14px; background:var(--color-bg-warning); border-radius:var(--radius-md); font-size:12px; color:var(--color-text-warning); line-height:1.6;">
-            ⚠️ <strong>Assumption Notice:</strong> The 8% annual return is an <strong>illustrative assumption only</strong> and is <strong>not a guarantee of future performance</strong>. Past returns do not predict future results. Unit trust and fund returns will vary. This does not constitute financial advice. Consult a licensed financial consultant before making any investment decisions.
+            ⚠️ The 8% per year return is an illustrative estimate — not a guarantee. Actual returns will vary depending on the fund you choose. This is not financial advice.
           </div>
         </div>`;
       }
@@ -1141,9 +1141,9 @@
 
         depletionAlertHtml = `
         <div class="card" style="background:var(--color-bg-danger); border:1px solid var(--color-border-danger);">
-          <div class="card-head" style="color:var(--color-text-danger); font-size:1.1rem;">⚠️ CRITICAL WARNING</div>
+          <div class="card-head" style="color:var(--color-text-danger); font-size:1.1rem;">⚠️ Your EPF May Run Out Before You Do</div>
           <div style="font-size:14px; line-height:1.6; color:var(--color-text-danger);">
-            To live your desired retirement lifestyle (<strong>${fmt(needCurrent)}/mo</strong> in today's money), your EPF will run dry at age <strong>${depletionAgeString}</strong>. You'll have no money for the next <strong>${gapYears.toFixed(1)} years</strong> of your life.
+            To sustain your target lifestyle of <strong>${fmt(needCurrent)}/mo</strong> (in today's money), your EPF savings are projected to run out at age <strong>${depletionAgeString}</strong> — leaving you with no income for the remaining <strong>${gapYears.toFixed(1)} years</strong> of your life.
           </div>
           
           <div style="margin-top:20px; background:rgba(255,255,255,0.4); border-radius:8px; padding:15px;">
@@ -1220,7 +1220,7 @@
 
         <!-- Goal coverage panel -->
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;background:var(--color-bg-secondary);">
-          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of salary in future money</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of salary · at retirement, after inflation</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
             <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${goalBarColor};width:${goalBarWidth}%;transition:width .3s;"></div>
@@ -1248,7 +1248,7 @@
 
         <!-- Benchmark 1: Belanjawanku ARI -->
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--color-bg-secondary);">
-          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Reasonable standard of living · Belanjawanku ${currentYear}</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">ARI (Adequate Retirement Income) · Belanjawanku ${currentYear}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
             <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${ariBarColor};width:${ariBarWidth}%;transition:width .3s;"></div>
@@ -1302,15 +1302,15 @@
         <div class="card danger-card">
           <div class="card-head">The retirement gap</div>
           <div class="math-row">
-            <span class="math-key">Monthly gap — real (inflation-adjusted)</span>
+            <span class="math-key">Monthly shortfall (after inflation)</span>
             <span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span>
           </div>
           <div class="math-row">
-            <span class="math-key">Total real gap over ${retireDuration} years</span>
+            <span class="math-key">Total shortfall over ${retireDuration} years</span>
             <span class="math-val neg">−${fmt(totalGapReal)}</span>
           </div>
           <div class="math-row">
-            <span class="math-key">EPF coverage of real need</span>
+            <span class="math-key">How much EPF covers</span>
             <span class="math-val ${coverPctReal < 50 ? 'neg' : 'warn'}">${coverPctReal}%</span>
           </div>
         </div>
@@ -1318,15 +1318,15 @@
         <div class="card">
           <div class="card-head">What You Need</div>
           <div class="math-row">
-            <span class="math-key">Lifestyle target — today's ringgit (${pct(lifePct * 100)} of ${fmt(income)})</span>
+            <span class="math-key">Monthly target in today's money (${pct(lifePct * 100)} of ${fmt(income)})</span>
             <span class="math-val">${fmt(needCurrent)}/mo</span>
           </div>
           <div class="math-row">
-            <span class="math-key">Lifestyle target — inflation-adjusted in ${yearsToRetire} years (×${cross(inflFactor)})</span>
+            <span class="math-key">Monthly target at retirement, after ${yearsToRetire} years of inflation (×${cross(inflFactor)})</span>
             <span class="math-val ${needRealClass}">${fmt(needReal)}/mo</span>
           </div>
           <div class="math-row">
-            <span class="math-key">EPF balance needed at retirement to sustain this lifestyle (for ${retireDuration} years)</span>
+            <span class="math-key">EPF balance needed at retirement to fund this for ${retireDuration} years</span>
             <span class="math-val ${requiredBalanceClass}">${fmt(epfNeededForLifestyle)}</span>
           </div>
         </div>
@@ -1338,7 +1338,7 @@
             <span class="math-val pos">${fmt(epfAtRetire)}</span>
           </div>
           <div class="math-row">
-            <span class="math-key">Monthly payout (Standard Annuity Formula)</span>
+            <span class="math-key">Monthly EPF payout</span>
             <span class="math-val pos">${fmt(epfMonthly)}/mo</span>
           </div>
         </div>
@@ -1349,8 +1349,8 @@
           <div class="assumption-row"><span>EPF balance today</span><span>${fmt(epfBal)}</span></div>
           <div class="assumption-row"><span>Years to retirement</span><span>${yearsToRetire} years (age ${age} → ${retireAge})</span></div>
           <div class="assumption-row"><span>Retirement duration</span><span>${retireDuration} years (age ${retireAge} → ${lifeExp})</span></div>
-          <div class="assumption-row"><span>EPF dividend rate (accumulation)</span><span>${fmtD(epfDivVal)}/yr</span></div>
-          <div class="assumption-row"><span>Post-retirement return rate (drawdown)</span><span>${fmtD(postRetireVal)}/yr</span></div>
+          <div class="assumption-row"><span>EPF yearly dividend rate (while working)</span><span>${fmtD(epfDivVal)}/yr</span></div>
+          <div class="assumption-row"><span>Return on EPF savings during retirement</span><span>${fmtD(postRetireVal)}/yr</span></div>
           <div class="assumption-row"><span>Salary growth</span><span>${fmtD(salGrowthVal)}/yr</span></div>
           <div class="assumption-row"><span>Inflation rate</span><span>${fmtD(inflationVal)}/yr</span></div>
           <div class="assumption-row"><span>EPF Contribution</span><span>${employeeContribPct}% (You) + 12-13% (Employer, statutory)</span></div>
@@ -1362,7 +1362,7 @@
       </details>
       
       <div class="disclaimer">
-        Projection assumes consistent EPF contributions on a growing salary, EPF dividend at ${fmtD(epfDivVal)}/year during accumulation, and ${fmtD(postRetireVal)} post-retirement return during drawdown (standard annuity). Inflation at ${fmtD(inflationVal)}/year applied to lifestyle cost only. EPF replacement rate benchmark: Allianz Global Pensions Report / OECD. Lifestyle benchmark: World Bank (70%). Results are illustrative — not financial advice. Actual EPF balance may differ based on contribution history, withdrawals, and dividend performance.
+        Figures are projections based on your inputs — EPF dividend at ${fmtD(epfDivVal)}/yr, inflation at ${fmtD(inflationVal)}/yr, retirement return at ${fmtD(postRetireVal)}/yr. Actual results will vary based on your contribution history, EPF withdrawals, and future dividend performance. This is not financial advice — consult a licensed financial planner for personalised guidance.
       </div>
     </div>
 
