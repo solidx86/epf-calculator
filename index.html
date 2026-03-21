@@ -1158,30 +1158,7 @@
         </div>`;
       }
 
-      // --- Build Withdrawal Table (Based on Sustainable Amount) ---
-      let inflTable = [];
-      let totalDrawn = 0;
-      let tableBal = epfAtRetire;
-      let tableDrawdown = annualPayoutStart;
-
-      for (let y = 1; y <= N; y++) {
-        let currentWithdrawal = tableDrawdown;
-        let balAfterWithdraw = tableBal - currentWithdrawal;
-        let balEnd = balAfterWithdraw * (1 + r);
-        
-        inflTable.push({ 
-          year: y, 
-          annual: currentWithdrawal, 
-          monthly: currentWithdrawal / 12, 
-          balance: Math.max(0, balEnd) 
-        });
-        
-        tableBal = balEnd;
-        tableDrawdown *= (1 + g);
-        totalDrawn += currentWithdrawal;
-      }
-
-      const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
+const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
 
       // --- Wake Up Call: Depletion Alert ---
       
@@ -1256,22 +1233,6 @@
       const waLink = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
 
       // --- Render ---
-      const inflTableHtml = `
-        <div class="card">
-          <div class="card-head">Inflation-adjusted withdrawal schedule</div>
-          <div style="overflow-x:auto">
-          <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:8px">
-            <thead>
-              <tr style="background:var(--color-bg-secondary)"><th style="padding:6px 8px;text-align:left">Year</th><th style="padding:6px 8px;text-align:right">Monthly withdrawal</th><th style="padding:6px 8px;text-align:right">Annual withdrawal</th><th style="padding:6px 8px;text-align:right">EPF Balance</th></tr>
-            </thead>
-            <tbody>
-              ${inflTable.map(row => `<tr><td style='padding:4px 8px'>${row.year}</td><td style='padding:4px 8px;text-align:right'>RM${row.monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td><td style='padding:4px 8px;text-align:right'>RM${row.annual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td><td style='padding:4px 8px;text-align:right'>RM${row.balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`).join('')}
-            </tbody>
-          </table>
-          <div style="font-size:12px;color:var(--color-text-tertiary)">Total withdrawn over ${N} years: <b>RM${Math.round(totalDrawn).toLocaleString()}</b></div>
-          </div>
-        </div>
-      `;
 
       const html = `
     <div class="tab-row">
@@ -1432,7 +1393,6 @@
           <div class="assumption-row"><span>Lifestyle target</span><span>${pct(lifePct * 100)} of income</span></div>
         </div>
 
-        ${inflTableHtml}
         </div>
       </details>
       
