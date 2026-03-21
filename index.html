@@ -544,8 +544,8 @@
       <div class="section-head">About You</div>
       <div class="field-grid">
         <div class="field" style="grid-column: 1 / -1;">
-          <label>Your Name</label>
-          <input type="text" id="userName" placeholder="e.g. Ahmad" style="max-width:280px;">
+          <label>Your Name <span style="color:var(--color-text-danger);">*</span></label>
+          <input type="text" id="userName" placeholder="e.g. Ahmad" style="max-width:280px;" required>
         </div>
         <div class="field">
           <label>Current Age</label>
@@ -671,6 +671,24 @@
     }
 
     function calculate() {
+      const userNameEl = document.getElementById('userName');
+      const userName = (userNameEl.value || '').trim();
+      if (!userName) {
+        userNameEl.focus();
+        userNameEl.style.outline = '2px solid var(--color-text-danger)';
+        userNameEl.addEventListener('input', () => userNameEl.style.outline = '', { once: true });
+        const existing = document.getElementById('name-error');
+        if (!existing) {
+          const err = document.createElement('div');
+          err.id = 'name-error';
+          err.style.cssText = 'color:var(--color-text-danger);font-size:12px;margin-top:4px;';
+          err.textContent = 'Please enter your name so we can personalise your WhatsApp message.';
+          userNameEl.insertAdjacentElement('afterend', err);
+          userNameEl.addEventListener('input', () => err.remove(), { once: true });
+        }
+        return;
+      }
+
       const age = +document.getElementById('age').value;
       const retireAge = +document.getElementById('retireAge').value;
       const income = +document.getElementById('income').value;
@@ -1245,8 +1263,7 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
 
       // --- Lead Gen: WhatsApp Link Generator ---
       const waPhone = "601173381713";
-      const userName = (document.getElementById('userName').value || '').trim();
-      const waGreeting = userName ? `Hi, I'm ${userName}.` : `Hi there.`;
+      const waGreeting = `Hi, I'm ${userName}.`;
       const waDepletionLine = depletionAge < lifeExp
         ? `EPF depletes at age: ${depletionAgeString}`
         : `EPF lasts beyond life expectancy (ok)`;
