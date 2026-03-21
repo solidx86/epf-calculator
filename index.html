@@ -743,9 +743,10 @@
       const actualLifestyleToday = epfMonthly / inflFactor;
       const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
 
-      // Belanjawanku 2024/2025 benchmark — RM2,690/mo for a single elderly person.
-      // Inflated to the current calendar year using the user's own inflation assumption.
-      const BELANJAWANKU_BASE = 2690;
+      // Belanjawanku 2024/2025 — National Average for a single elderly person: RM2,380/mo.
+      // Represents a "decent standard of living": basic needs, physical comfort, and the ability
+      // to participate in society with dignity. Inflated to current year using the user's inflation assumption.
+      const BELANJAWANKU_BASE = 2380;
       const BELANJAWANKU_BASE_YEAR = 2024;
       const currentYear = new Date().getFullYear();
       const belanjawankuNow = BELANJAWANKU_BASE * Math.pow(1 + inflation, currentYear - BELANJAWANKU_BASE_YEAR);
@@ -905,8 +906,8 @@
       const ariBarColor = meetsARI ? 'var(--green)' : 'var(--amber)';
       const ariBarWidth = Math.min(100, (actualLifestyleToday / belanjawankuNow) * 100).toFixed(1);
       const ariStatusHtml = meetsARI
-        ? `<div style="font-size:12px;color:var(--color-text-success);background:var(--color-bg-success);border:1px solid var(--color-border-success);border-radius:6px;padding:6px 10px;">Meets the Adequate Retirement Income (ARI) standard for a single elderly person.</div>`
-        : `<div style="font-size:12px;color:var(--color-text-warning);background:var(--color-bg-warning);border:1px solid var(--color-border-warning);border-radius:6px;padding:6px 10px;"><strong>${fmt(ariGap)}/mo below</strong> the ARI (Adequate Retirement Income) standard — the minimum considered adequate for a single elderly person to live reasonably in Malaysia.</div>`;
+        ? `<div style="font-size:12px;color:var(--color-text-success);background:var(--color-bg-success);border:1px solid var(--color-border-success);border-radius:6px;padding:6px 10px;">Meets the Belanjawanku national average — enough for a decent standard of living: basic needs, physical comfort, and participating in society with dignity.</div>`
+        : `<div style="font-size:12px;color:var(--color-text-warning);background:var(--color-bg-warning);border:1px solid var(--color-border-warning);border-radius:6px;padding:6px 10px;"><strong>${fmt(ariGap)}/mo below</strong> the Belanjawanku national average — the amount considered necessary for a decent standard of living: basic needs, physical comfort, and the ability to participate in society with dignity.</div>`;
 
       const targetBarColor = hasLifestyleTargetCoverage ? 'var(--green)' : (actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7 ? 'var(--amber)' : 'var(--red)');
       const targetBarWidth = Math.min(100, (actualLifestyleToday / desiredLifestyleToday) * 100).toFixed(1);
@@ -1248,7 +1249,7 @@
 
         <!-- Benchmark 1: Belanjawanku ARI -->
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--color-bg-secondary);">
-          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">ARI (Adequate Retirement Income) · Belanjawanku ${currentYear}</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Decent standard of living · Belanjawanku national avg · ${currentYear}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
             <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${ariBarColor};width:${ariBarWidth}%;transition:width .3s;"></div>
@@ -1256,7 +1257,7 @@
             <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(belanjawankuNow)}/mo</span>
           </div>
           ${ariStatusHtml}
-          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:6px;">RM2,690 (2024 base) · grown at ${(inflation*100).toFixed(1)}%/yr · Source: Belanjawanku 2024/2025 & EPF RIA Framework</div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:6px;">National average RM2,380/mo (single elderly, 2024/2025) · grown at ${(inflation*100).toFixed(1)}%/yr · Source: Belanjawanku 2024/2025</div>
         </div>
 
         <!-- Benchmark 2: Personal retirement target -->
