@@ -742,6 +742,15 @@
 
       const actualLifestyleToday = epfMonthly / inflFactor;
       const actualLifestylePctOfSalary = income > 0 ? (actualLifestyleToday / income) * 100 : 0;
+
+      // Belanjawanku 2024/2025 benchmark — RM2,690/mo for a single elderly person.
+      // Inflated to the current calendar year using the user's own inflation assumption.
+      const BELANJAWANKU_BASE = 2690;
+      const BELANJAWANKU_BASE_YEAR = 2024;
+      const currentYear = new Date().getFullYear();
+      const belanjawankuNow = BELANJAWANKU_BASE * Math.pow(1 + inflation, currentYear - BELANJAWANKU_BASE_YEAR);
+      const meetsARI = actualLifestyleToday >= belanjawankuNow;
+      const ariGap = belanjawankuNow - actualLifestyleToday;
       const desiredLifestyleToday = needCurrent;
       const gapToRetirementLifestyle = Math.max(0, desiredLifestyleToday - actualLifestyleToday);
       const hasLifestyleTargetCoverage = actualLifestyleToday >= desiredLifestyleToday;
@@ -883,6 +892,23 @@
         actualVerdictTitle = 'Urgent: Major Gap in Purchasing Power';
         actualVerdictBody = `There is a major shortfall between your projected retirement income (${actualLifestylePctOfSalary.toFixed(1)}% of current purchasing power) and your target of ${lifestyleTargetPct.toFixed(0)}%. An investment plan is critical to avoid a drastic change in lifestyle.`;
       }
+
+      // --- Pre-compute benchmark panel HTML fragments (avoids nested template literals) ---
+      const ariBarColor = meetsARI ? 'var(--green)' : 'var(--amber)';
+      const ariBarWidth = Math.min(100, (actualLifestyleToday / belanjawankuNow) * 100).toFixed(1);
+      const ariStatusHtml = meetsARI
+        ? `<div style="font-size:12px;color:var(--color-text-success);background:var(--color-bg-success);border:1px solid var(--color-border-success);border-radius:6px;padding:6px 10px;">Meets the Adequate Retirement Income (ARI) standard for a single elderly person.</div>`
+        : `<div style="font-size:12px;color:var(--color-text-warning);background:var(--color-bg-warning);border:1px solid var(--color-border-warning);border-radius:6px;padding:6px 10px;"><strong>${fmt(ariGap)}/mo below</strong> the ARI (Adequate Retirement Income) standard — the minimum considered adequate for a single elderly person to live reasonably in Malaysia.</div>`;
+
+      const targetBarColor = hasLifestyleTargetCoverage ? 'var(--green)' : (actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7 ? 'var(--amber)' : 'var(--red)');
+      const targetBarWidth = Math.min(100, (actualLifestyleToday / desiredLifestyleToday) * 100).toFixed(1);
+      const targetStatusColor = actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7 ? 'var(--color-text-warning)' : 'var(--color-text-danger)';
+      const targetStatusBg = actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7 ? 'var(--color-bg-warning)' : 'var(--color-bg-danger)';
+      const targetStatusBorder = actualLifestylePctOfSalary >= lifestyleTargetPct * 0.7 ? 'var(--color-border-warning)' : 'var(--color-border-danger)';
+      const surplusText = lifestyleTargetSurplus > 0 ? ` — with ${fmt(lifestyleTargetSurplus)}/mo to spare` : '';
+      const targetStatusHtml = hasLifestyleTargetCoverage
+        ? `<div style="font-size:12px;color:var(--color-text-success);background:var(--color-bg-success);border:1px solid var(--color-border-success);border-radius:6px;padding:6px 10px;">Meets your ${(lifePct * 100).toFixed(0)}% lifestyle target${surplusText}.</div>`
+        : `<div style="font-size:12px;color:${targetStatusColor};background:${targetStatusBg};border:1px solid ${targetStatusBorder};border-radius:6px;padding:6px 10px;"><strong>${fmt(gapToRetirementLifestyle)}/mo short</strong> of your ${(lifePct * 100).toFixed(0)}% lifestyle target of ${fmt(desiredLifestyleToday)}/mo.</div>`;
 
       // --- Calculate Required EPF Balance for Desired Lifestyle ---
       // PV = W * (1 - k^N) / (1 - k)
@@ -1229,44 +1255,39 @@
 
       <div class="card">
         <div class="card-head">Your Retirement Purchasing Power</div>
-        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:12px;">
-          Your EPF is projected to provide for <strong>${actualLifestylePctOfSalary.toFixed(1)}%</strong> of your current lifestyle, against your target of <strong>${(lifePct * 100).toFixed(0)}%</strong>.
-          <br>Imagine what you can buy with <strong>${fmt(actualLifestyleToday)}</strong> today. That will be your purchasing power every month in retirement.
+
+        <!-- Hero stat -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:6px;">Your EPF income · in today’s money</div>
+          <div style="font-size:36px;font-weight:700;color:var(--color-text-primary);line-height:1;">${fmt(actualLifestyleToday)}<span style="font-size:15px;font-weight:400;color:var(--color-text-secondary);margin-left:6px;">/month</span></div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;line-height:1.5;">What your projected EPF payout of ${fmt(epfMonthly)}/mo at retirement feels like in today’s money — after ${yearsToRetire} years of ${(inflation*100).toFixed(1)}% annual inflation.</div>
         </div>
-        <details>
-            <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">More Details</summary>
-            <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This bar shows your projected EPF payout in today’s money. It helps you understand what your purchasing power in retirement will feel like compared to your life today.</div>
-            <div class="bar-wrap">
-          <div class="bar-track">
-            <div class="bar-seg" style="width:${lifestyleBarGreenWidth.toFixed(1)}%;background:var(--green)"></div>
-            ${hasLifestyleTargetCoverage 
-              ? `<div class="bar-seg" style="width:${lifestyleBarBlueWidth.toFixed(1)}%;background:var(--blue)"></div>`
-              : `<div class="bar-seg" style="width:${lifestyleBarAmberWidth.toFixed(1)}%;background:var(--amber)"></div>`
-            }
-            <div class="bar-seg" style="width:${lifestyleBarRedWidth.toFixed(1)}%;background:var(--red)"></div>
-          </div>
-          <div class="bar-legend">
-            <div class="leg">
-              <div class="leg-dot" style="background:var(--green)"></div>
-              <span><strong>EPF-funded income:</strong> ${greenBarText} – monthly retirement payout in today’s money</span>
+
+        <!-- Benchmark 1: Belanjawanku ARI -->
+        <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--color-bg-secondary);">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Reasonable standard of living · Belanjawanku ${currentYear}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+              <div style="height:100%;border-radius:4px;background:${ariBarColor};width:${ariBarWidth}%;transition:width .3s;"></div>
             </div>
-            ${hasLifestyleTargetCoverage 
-              ? `<div class="leg">
-                  <div class="leg-dot" style="background:var(--blue)"></div>
-                  <span><strong>Surplus:</strong> ${blueBarText} – monthly income above your target lifestyle</span>
-                 </div>`
-              : `<div class="leg">
-                   <div class="leg-dot" style="background:var(--amber)"></div>
-                   <span><strong>Lifestyle gap:</strong> ${amberBarText} – shortfall to target retirement lifestyle today</span>
-                 </div>`
-            }
-            <div class="leg">
-              <div class="leg-dot" style="background:var(--red)"></div>
-              <span><strong>Salary let-go:</strong> ${redBarText} – remaining portion of salary effectively given up</span>
-            </div>
+            <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(belanjawankuNow)}/mo</span>
           </div>
+          ${ariStatusHtml}
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:6px;">RM2,690 (2024 base) · grown at ${(inflation*100).toFixed(1)}%/yr · Source: Belanjawanku 2024/2025 & EPF RIA Framework</div>
         </div>
-        </details>
+
+        <!-- Benchmark 2: Personal retirement target -->
+        <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;background:var(--color-bg-secondary);">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of current lifestyle</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+              <div style="height:100%;border-radius:4px;background:${targetBarColor};width:${targetBarWidth}%;transition:width .3s;"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(desiredLifestyleToday)}/mo</span>
+          </div>
+          ${targetStatusHtml}
+        </div>
+
         <div class="verdict-box ${actualVerdictClass}">
           <div class="verdict-title ${actualVerdictClass}">${actualVerdictTitle}</div>
           <div class="verdict-body ${actualVerdictClass}">${actualVerdictBody}</div>
