@@ -543,6 +543,10 @@
     <div class="panel">
       <div class="section-head">About You</div>
       <div class="field-grid">
+        <div class="field" style="grid-column: 1 / -1;">
+          <label>Your Name</label>
+          <input type="text" id="userName" placeholder="e.g. Ahmad" style="max-width:280px;">
+        </div>
         <div class="field">
           <label>Current Age</label>
           <input type="number" id="age" value="40" min="20" max="59">
@@ -1240,11 +1244,45 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
       }
 
       // --- Lead Gen: WhatsApp Link Generator ---
-      // TODO: Replace with your actual WhatsApp number (format: 601xxxxxxxxx)
-      const waPhone = "601173381713"; 
-      const waText = hasFullCoverage 
-        ? `Hi, I used your EPF calculator. I'm on track with a surplus of ${fmt(coverageSurplus)}/mo but I'd like to discuss optimizing my portfolio.`
-        : `Hi, I used your EPF calculator. I found a retirement gap of ${fmt(totalGapReal)}. I'd like a free consultation on how to close it with Unit Trusts.`;
+      const waPhone = "601173381713";
+      const userName = (document.getElementById('userName').value || '').trim();
+      const waGreeting = userName ? `Hi, I'm ${userName}.` : `Hi there.`;
+      const waDepletionLine = depletionAge < lifeExp
+        ? `EPF depletes at age: ${depletionAgeString}`
+        : `EPF lasts beyond life expectancy (ok)`;
+      // Growing annuity PV formula — same as chart: W * 12 * (1 - k^N) / (1 - k)
+      const waFundNeededARI = Math.max(0, ariRetirementGap) > 0
+        ? (Math.abs(r - g) < 1e-6 ? Math.max(0, ariRetirementGap) * 12 * N : Math.max(0, ariRetirementGap) * 12 * (1 - Math.pow(k, N)) / (1 - k))
+        : 0;
+      const waFundNeededGoal = Math.max(0, gapReal) > 0
+        ? (Math.abs(r - g) < 1e-6 ? Math.max(0, gapReal) * 12 * N : Math.max(0, gapReal) * 12 * (1 - Math.pow(k, N)) / (1 - k))
+        : 0;
+      const waAriLine = meetsARIAtRetirement
+        ? `Belanjawanku: +${fmt(epfMonthly - belanjawankuAtRetirement)}/mo surplus (ok)`
+        : `Belanjawanku: -${fmt(Math.max(0, ariRetirementGap))}/mo | Fund needed: -${fmt(waFundNeededARI)}`;
+      const waGoalLine = hasFullCoverage
+        ? `Retirement goal: +${fmt(coverageSurplus)}/mo surplus (ok)`
+        : `Retirement goal: -${fmt(Math.max(0, gapReal))}/mo | Fund needed: -${fmt(waFundNeededGoal)}`;
+      const waText =
+`${waGreeting}
+I used your EPF retirement calculator.
+
+--- MY INPUTS ---
+Age: ${age} | Retire: ${retireAge} | Life exp: ${lifeExp}
+Monthly income: ${fmt(income)}
+EPF balance: ${fmt(epfBal)}
+Target income: ${(lifePct*100).toFixed(0)}% of salary
+EPF div: ${fmtD(epfDivVal)} | Salary growth: ${(salGrowth*100).toFixed(1)}% | Inflation: ${(inflation*100).toFixed(1)}%
+Contrib: ${employeeContribPct}% | Post-retire return: ${(postRetireRate*100).toFixed(1)}%
+
+--- MY RESULTS ---
+Purchasing power (today's RM): ${fmt(actualLifestyleToday)}/mo
+(Shortfall figures below are nominal at retirement)
+${waAriLine}
+${waGoalLine}
+${waDepletionLine}
+
+${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. Can we chat?" : "I'd like a free consultation to close this gap. Can we chat?"}`;
       const waLink = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
 
       // --- Render ---
