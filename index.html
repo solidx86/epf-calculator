@@ -810,7 +810,9 @@
 
       // --- Gaps ---
       const gapReal = needReal - epfMonthly;
-      const totalGapReal = Math.max(0, gapReal) * 12 * retireDuration;
+      const totalGapReal = Math.abs(r - g) < 1e-6
+        ? Math.max(0, gapReal) * 12 * N
+        : Math.max(0, gapReal) * 12 * (1 - Math.pow(k, N)) / (1 - k);
 
       // --- Coverage ratios ---
       const coverageRealRaw = needReal > 0 ? epfMonthly / needReal : 0;
@@ -1391,7 +1393,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
         <div style="font-size:13px; line-height:1.6; color: var(--color-text-primary); margin-bottom: 15px;">
           ${hasFullCoverage 
             ? "You are in a strong position! However, parking your surplus in generic funds might mean missing out on higher potential returns. Let's optimize your portfolio." 
-            : "Don't panic. As a Licensed Public Mutual consultant, I can help you structure a personalized investment plan to bridge this <strong>" + fmt(totalGapReal) + "</strong> shortfall."}
+            : "Don't panic. As a Licensed Public Mutual consultant, I can help you structure a personalized investment plan to bridge this <strong>" + fmt(waFundNeededGoal) + "</strong> shortfall."}
         </div>
         <a href="${waLink}" target="_blank" class="calc-btn" style="text-decoration:none; display:block; text-align:center; background: var(--blue); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
           <span style="margin-right:6px">💬</span> WhatsApp Me for a Free Consultation
@@ -1412,7 +1414,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
             <span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span>
           </div>
           <div class="math-row">
-            <span class="math-key">Total shortfall over ${retireDuration} years</span>
+            <span class="math-key">Extra EPF balance needed at retirement to fund this gap</span>
             <span class="math-val neg">−${fmt(totalGapReal)}</span>
           </div>
           <div class="math-row">
@@ -1475,17 +1477,17 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
       <div class="card">
         <div class="card-head">Step-by-step calculation walkthrough</div>
         <div class="note-box">These are the exact steps used to arrive at every number in the summary.</div>
-        <div class="math-row"><span class="math-key">Step 1 — Starting EPF balance</span><span class="math-val">${fmt(epfBal)}</span></div>
-        <div class="math-row"><span class="math-key">Step 2 — Annual EPF contribution today (${pct(initialTotalContribRate * 100)} × ${fmt(income)} × 12)</span><span class="math-val">${fmt(income * initialTotalContribRate * 12)}/yr</span></div>
-        <div class="math-row"><span class="math-key">Step 3 — EPF dividend during accumulation phase</span><span class="math-val">${fmtD(epfDivVal)}/yr</span></div>
-        <div class="math-row"><span class="math-key">Step 4 — Salary grows at ${fmtD(salGrowthVal)}/yr × ${yearsToRetire} yrs → salary at retirement</span><span class="math-val">${fmt(finalSalary)}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 5 — Projected EPF balance at age ${retireAge} (year-by-year compounding)</span><span class="math-val pos">${fmt(epfAtRetire)}</span></div>
-        <div class="math-row"><span class="math-key">Step 6 — Initial Monthly Payout (Growing Annuity, inflation-adjusted annually)</span><span class="math-val pos">${fmt(epfMonthly)}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 7 — Lifestyle need today (${pct(lifePct * 100)} × ${fmt(income)})</span><span class="math-val">${fmt(needCurrent)}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 8 — Inflation factor over ${yearsToRetire} yrs at ${fmtD(inflationVal)} (×${cross(inflFactor)})</span><span class="math-val">${cross(inflFactor)}</span></div>
-        <div class="math-row"><span class="math-key">Step 9 — Real lifestyle need at retirement (Step 7 × Step 8)</span><span class="math-val warn">${fmt(needReal)}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 10 — Real monthly gap (Step 9 − Step 6)</span><span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span></div>
-        <div class="math-row"><span class="math-key">Step 11 — Total real gap (Step 10 × 12 × ${retireDuration} yrs)</span><span class="math-val neg">−${fmt(totalGapReal)}</span></div>
+        <div class="math-row"><span class="math-key">Step 1 — Your EPF balance today</span><span class="math-val">${fmt(epfBal)}</span></div>
+        <div class="math-row"><span class="math-key">Step 2 — How much flows into EPF each year (${pct(initialTotalContribRate * 100)} of salary — employer + your share combined)</span><span class="math-val">${fmt(income * initialTotalContribRate * 12)}/yr</span></div>
+        <div class="math-row"><span class="math-key">Step 3 — EPF dividend rate while you're still working</span><span class="math-val">${fmtD(epfDivVal)}/yr</span></div>
+        <div class="math-row"><span class="math-key">Step 4 — Your estimated salary at retirement (grows ${fmtD(salGrowthVal)}/yr over ${yearsToRetire} yrs)</span><span class="math-val">${fmt(finalSalary)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 5 — Total EPF savings when you retire at age ${retireAge}</span><span class="math-val pos">${fmt(epfAtRetire)}</span></div>
+        <div class="math-row"><span class="math-key">Step 6 — Monthly payout EPF can sustain over ${retireDuration} yrs, rising with inflation each year</span><span class="math-val pos">${fmt(epfMonthly)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 7 — How much you want to spend each month, in today's money (${pct(lifePct * 100)} of salary)</span><span class="math-val">${fmt(needCurrent)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 8 — How much more everything will cost by the time you retire (${yearsToRetire} yrs of inflation at ${fmtD(inflationVal)}/yr)</span><span class="math-val">${cross(inflFactor)}</span></div>
+        <div class="math-row"><span class="math-key">Step 9 — What your monthly spending target becomes at retirement — same lifestyle, but pricier world (Step 7 × Step 8)</span><span class="math-val warn">${fmt(needReal)}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 10 — Monthly shortfall at retirement — what EPF alone can't cover (Step 9 − Step 6)</span><span class="math-val neg">−${fmt(Math.max(0, gapReal))}/mo</span></div>
+        <div class="math-row"><span class="math-key">Step 11 — Extra savings needed at retirement to cover the shortfall</span><span class="math-val neg">−${fmt(totalGapReal)}</span></div>
       </div>
 
       <div class="card">
