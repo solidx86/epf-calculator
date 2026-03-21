@@ -893,6 +893,14 @@
         actualVerdictBody = `There is a major shortfall between your projected retirement income (${actualLifestylePctOfSalary.toFixed(1)}% of current purchasing power) and your target of ${lifestyleTargetPct.toFixed(0)}%. An investment plan is critical to avoid a drastic change in lifestyle.`;
       }
 
+      // --- Pre-compute goal coverage panel HTML fragments ---
+      const goalBarColor = hasFullCoverage ? 'var(--green)' : (coverageReal >= 0.7 ? 'var(--amber)' : 'var(--red)');
+      const goalBarWidth = Math.min(100, coverageReal * 100).toFixed(1);
+      const goalSurplusText = coverageSurplus > 0 ? ` — with ${fmt(coverageSurplus)}/mo to spare` : '';
+      const goalStatusHtml = hasFullCoverage
+        ? `<div style="font-size:12px;color:var(--color-text-success);background:var(--color-bg-success);border:1px solid var(--color-border-success);border-radius:6px;padding:6px 10px;">Fully covers your retirement goal of ${fmt(needReal)}/mo${goalSurplusText}.</div>`
+        : `<div style="font-size:12px;color:${coverageReal >= 0.7 ? 'var(--color-text-warning)' : 'var(--color-text-danger)'};background:${coverageReal >= 0.7 ? 'var(--color-bg-warning)' : 'var(--color-bg-danger)'};border:1px solid ${coverageReal >= 0.7 ? 'var(--color-border-warning)' : 'var(--color-border-danger)'};border-radius:6px;padding:6px 10px;"><strong>${fmt(Math.max(0, gapReal))}/mo short</strong> of your retirement goal of ${fmt(needReal)}/mo — only ${coverPctReal}% covered by EPF alone.</div>`;
+
       // --- Pre-compute benchmark panel HTML fragments (avoids nested template literals) ---
       const ariBarColor = meetsARI ? 'var(--green)' : 'var(--amber)';
       const ariBarWidth = Math.min(100, (actualLifestyleToday / belanjawankuNow) * 100).toFixed(1);
@@ -1202,51 +1210,26 @@
 
       <div class="card">
         <div class="card-head">Will Your EPF Meet Your Retirement Goal?</div>
-        <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:12px;">
-          Your retirement goal is <strong>${fmt(needReal)}/mo</strong> in future money. Your EPF is projected to provide <strong>${fmt(epfMonthly)}/mo</strong>, covering <strong>${coverPctReal}%</strong> of this goal.
+
+        <!-- Hero stat -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:6px;">Your projected EPF payout at retirement</div>
+          <div style="font-size:36px;font-weight:700;color:var(--color-text-primary);line-height:1;">${fmt(epfMonthly)}<span style="font-size:15px;font-weight:400;color:var(--color-text-secondary);margin-left:6px;">/month</span></div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;line-height:1.5;">Nominal monthly income from your EPF at retirement — contributions grown over ${yearsToRetire} years at ${fmtD(epfDivVal)} dividend, then drawn down over ${N} years.</div>
         </div>
-        <details>
-            <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">More Details</summary>
-            <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);font-style:italic;line-height:1.45">This shows if your EPF savings will be enough for your desired lifestyle when you retire, after accounting for inflation.</div>
-            <div class="bar-wrap">
-          <div class="bar-track">
-          ${hasFullCoverage
-            ? `
-                <div class="bar-seg" style="width:${coverageBarNeedWidth.toFixed(1)}%;background:var(--green)"></div>
-                <div class="bar-seg" style="width:${coverageBarSurplusWidth.toFixed(1)}%;background:var(--blue)"></div>
-              `
-            : `
-                <div class="bar-seg" style="width:${coverageMainWidth.toFixed(1)}%;background:var(--blue)"></div>
-                <div class="bar-seg" style="width:${coverageShortfallWidth.toFixed(1)}%;background:var(--amber)"></div>
-              `
-          }
+
+        <!-- Goal coverage panel -->
+        <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;background:var(--color-bg-secondary);">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of salary in future money</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+              <div style="height:100%;border-radius:4px;background:${goalBarColor};width:${goalBarWidth}%;transition:width .3s;"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(needReal)}/mo</span>
           </div>
-          <div class="bar-legend">
-          ${hasFullCoverage
-            ? `
-                <div class="leg">
-                  <div class="leg-dot" style="background:var(--green)"></div>
-                  <span><strong>Sufficient payout:</strong> ${fmt(needReal)}/mo – portion of EPF payout that meets the need</span>
-                </div>
-                ${coverageSurplus > 0 ? `<div class="leg">
-                  <div class="leg-dot" style="background:var(--blue)"></div>
-                  <span><strong>Surplus:</strong> ${fmt(coverageSurplus)}/mo – payout above the need</span>
-                </div>` : ''}
-              `
-            : `
-                <div class="leg">
-                  <div class="leg-dot" style="background:var(--blue)"></div>
-                  <span><strong>EPF payout:</strong> ${fmt(epfMonthly)}/mo – inflation-adjusted monthly income from EPF</span>
-                </div>
-                <div class="leg">
-                  <div class="leg-dot" style="background:var(--amber)"></div>
-                  <span><strong>Remaining need:</strong> ${fmt(Math.max(0, needReal - epfMonthly))}/mo – monthly shortfall</span>
-                </div>
-              `
-          }
-          </div>
+          ${goalStatusHtml}
         </div>
-        </details>
+
         <div class="verdict-box ${verdictClass}">
           <div class="verdict-title ${verdictClass}">${verdictTitle}</div>
           <div class="verdict-body ${verdictClass}">${verdictBody}</div>
