@@ -545,22 +545,22 @@
       <div class="field-grid">
         <div class="field">
           <label>Current Age</label>
-          <input type="number" id="age" value="35" min="20" max="59">
+          <input type="number" id="age" value="40" min="20" max="59">
         </div>
         <div class="field">
           <label>Current Monthly Income (RM)</label>
-          <input type="number" id="income" value="4500" min="1000">
+          <input type="number" id="income" value="5000" min="1000">
         </div>
         <div class="field">
           <label>Current EPF Balance (RM)</label>
-          <input type="number" id="epfBalance" value="165000" min="0">
+          <input type="number" id="epfBalance" value="200000" min="0">
           <div class="field-note">From KWSP i-Akaun app or EPF annual statement</div>
         </div>
       </div>
 
       <details>
         <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">
-          <span>⚙️ Customize Retirement Age & Lifestyle</span>
+          <span>⚙️ More Options</span>
         </summary>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--color-border);">
           <div class="field-grid">
@@ -587,7 +587,7 @@
     <div class="panel">
       <details>
         <summary style="cursor:pointer; outline:none; font-size:13px; font-weight:600; color:var(--color-text-info); padding: 5px 0;">
-          <span>⚙️ Advanced: Edit Inflation & Growth Assumptions</span>
+          <span>⚙️ Advanced Assumptions</span>
         </summary>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--color-border);">
           <div class="field-grid">
@@ -602,8 +602,8 @@
             </div>
             <div class="field">
               <label>Inflation Rate (%)</label>
-              <input type="number" id="inflation" value="5" min="1" max="10" step="0.1">
-              <div class="field-note">Default 5% — conservative lifestyle cost escalation</div>
+              <input type="number" id="inflation" value="4" min="3" max="6" step="0.1">
+              <div class="field-note">How much more expensive things get each year. At 4%, something that costs RM100 today will cost ~RM149 in 10 years.</div>
             </div>
             <div class="field">
               <label>Employee EPF Contribution Rate (%)</label>
@@ -900,7 +900,163 @@
         : requiredAnnualNeed * (1 - Math.pow(k, N)) / (1 - k);
         
       const requiredBalanceClass = epfAtRetire >= epfNeededForLifestyle ? 'pos' : 'neg';
-      
+
+      // --- Supplementary Investment Calculator (close the gap) ---
+      let investmentSectionHtml = '';
+      const gapMonthlyReal = Math.max(0, gapReal);
+
+      if (gapMonthlyReal > 0) {
+        // Lump sum needed at retirement to sustain monthly gap for retireDuration years
+        const gapFundNeeded = Math.abs(r - g) < 1e-6
+          ? gapMonthlyReal * 12 * N
+          : gapMonthlyReal * 12 * (1 - Math.pow(k, N)) / (1 - k);
+
+        // Monthly investment at 8% p.a. to accumulate gapFundNeeded
+        const investRateMonthly = 0.08 / 12;
+        const investMonths = yearsToRetire * 12;
+        const fvFactor = Math.pow(1 + investRateMonthly, investMonths);
+        const monthlyInvestNeeded = gapFundNeeded * investRateMonthly / (fvFactor - 1);
+        const totalPrincipal = monthlyInvestNeeded * 12 * yearsToRetire;
+
+        // Build year-by-year SIP data: [yr, principal, portfolio]
+        let sipYearData = [];
+        let sipBal = 0;
+        for (let y = 0; y <= yearsToRetire; y++) {
+          sipYearData.push([y, Math.round(monthlyInvestNeeded * 12 * y), Math.round(sipBal)]);
+          for (let m = 0; m < 12; m++) sipBal = sipBal * (1 + investRateMonthly) + monthlyInvestNeeded;
+        }
+        const sipDataJSON = JSON.stringify(sipYearData);
+
+        // Chart geometry
+        const cw2 = 500, ch2 = 210;
+        const pl2 = 62, pr2 = 22, pt2 = 20, pb2 = 38;
+        const cW2 = cw2 - pl2 - pr2, cH2 = ch2 - pt2 - pb2;
+        const maxY2 = gapFundNeeded * 1.12;
+        const getX2r = yr => pl2 + (yr / yearsToRetire) * cW2;
+        const getY2r = val => pt2 + cH2 - (Math.min(val, maxY2) / maxY2) * cH2;
+        const getX2 = yr => getX2r(yr).toFixed(1);
+        const getY2 = val => getY2r(val).toFixed(1);
+
+        // SVG paths
+        let ppPath = `M ${getX2(0)} ${getY2(0)}`;
+        let prPath = `M ${getX2(0)} ${getY2(0)}`;
+        sipYearData.forEach(d => {
+          ppPath += ` L ${getX2(d[0])} ${getY2(d[2])}`;
+          prPath += ` L ${getX2(d[0])} ${getY2(d[1])}`;
+        });
+        const ppFill = ppPath + ` L ${getX2(yearsToRetire)} ${getY2(0)} L ${getX2(0)} ${getY2(0)} Z`;
+        const prFill = prPath + ` L ${getX2(yearsToRetire)} ${getY2(0)} L ${getX2(0)} ${getY2(0)} Z`;
+
+        // Target line
+        const targetYn = getY2r(gapFundNeeded);
+        const targetY2 = targetYn.toFixed(1);
+
+        // Y-axis gridlines + labels
+        let yMarkup = '';
+        for (let i = 0; i <= 4; i++) {
+          const val = (maxY2 / 4) * i;
+          const yn = getY2r(val);
+          const lbl = val === 0 ? '0' : val >= 1e6 ? (val / 1e6).toFixed(1) + 'M' : Math.round(val / 1e3) + 'k';
+          yMarkup += `<text x="${pl2 - 4}" y="${(yn + 3.5).toFixed(1)}" font-size="9" fill="rgba(0,0,0,0.4)" text-anchor="end">RM${lbl}</text>`;
+          yMarkup += `<line x1="${pl2}" y1="${yn.toFixed(1)}" x2="${cw2 - pr2}" y2="${yn.toFixed(1)}" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>`;
+        }
+
+        // X-axis labels
+        let xLabels2 = '';
+        const xInt = yearsToRetire <= 10 ? 2 : yearsToRetire <= 20 ? 5 : 10;
+        for (let y = 0; y <= yearsToRetire; y += xInt) {
+          xLabels2 += `<text x="${getX2(y)}" y="${ch2 - 10}" font-size="10" fill="rgba(0,0,0,0.4)" text-anchor="middle">Yr ${y}</text>`;
+        }
+        if (yearsToRetire % xInt !== 0) {
+          xLabels2 += `<text x="${getX2(yearsToRetire)}" y="${ch2 - 10}" font-size="10" fill="rgba(0,0,0,0.4)" text-anchor="middle">Yr ${yearsToRetire}</text>`;
+        }
+
+        investmentSectionHtml = `
+        <div class="card" style="border-color: var(--color-border-info);">
+          <div class="card-head">📈 Closing the Gap: Supplementary Investment Plan</div>
+          <div style="font-size:13px; color:var(--color-text-secondary); line-height:1.6; margin-bottom:14px;">
+            Your EPF alone won't fully fund your retirement lifestyle. Here's what it takes to close the gap with a separate investment vehicle — on top of your EPF.
+          </div>
+          <div class="split-grid" style="grid-template-columns:1fr 1fr; margin-bottom:16px;">
+            <div class="split-card">
+              <div class="split-label">Additional fund needed at retirement</div>
+              <div class="split-main" style="color:var(--color-text-danger); font-size:15px;">${fmt(gapFundNeeded)}</div>
+              <div class="split-sub">To sustain your ${retireDuration}-yr lifestyle gap</div>
+            </div>
+            <div class="split-card">
+              <div class="split-label">Est. monthly investment needed</div>
+              <div class="split-main" style="color:var(--blue); font-size:15px;">${fmt(monthlyInvestNeeded)}/mo</div>
+              <div class="split-sub">Separate from EPF · 8% p.a. assumption*</div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; font-weight:600; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; border-top: 0.5px solid var(--color-border); padding-top:12px;">
+            Growth projection · ${fmt(monthlyInvestNeeded)}/mo at 8% p.a. assumption · hover to explore
+          </div>
+
+          <div style="position:relative; background:var(--color-bg-secondary); border-radius:8px; padding:14px 8px 4px;">
+            <div id="sipChart-tooltip" style="display:none; position:absolute; background:var(--color-bg); border:0.5px solid var(--color-border-secondary); border-radius:6px; padding:8px 10px; font-size:11px; pointer-events:none; z-index:10; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+              <div id="sipChart-tip-yr" style="font-weight:700; color:var(--color-text-primary); margin-bottom:3px;"></div>
+              <div id="sipChart-tip-principal" style="color:var(--color-text-secondary);"></div>
+              <div id="sipChart-tip-portfolio" style="color:var(--blue);"></div>
+              <div id="sipChart-tip-gain" style="color:var(--green);"></div>
+            </div>
+            <svg id="sipChart"
+              viewBox="0 0 ${cw2} ${ch2}"
+              data-d='${sipDataJSON}'
+              data-pl="${pl2}" data-pr="${pr2}" data-pt="${pt2}" data-pb="${pb2}"
+              data-vbw="${cw2}" data-vbh="${ch2}"
+              data-years="${yearsToRetire}"
+              data-maxy="${maxY2.toFixed(0)}"
+              onmousemove="handleSipChart(event,this)"
+              onmouseleave="hideSipTooltip(this)"
+              style="width:100%; height:auto; overflow:visible; cursor:crosshair; display:block;">
+
+              <!-- Axes -->
+              <line x1="${pl2}" y1="${pt2}" x2="${pl2}" y2="${ch2 - pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+              <line x1="${pl2}" y1="${ch2 - pb2}" x2="${cw2 - pr2}" y2="${ch2 - pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+
+              <!-- Y gridlines + labels -->
+              ${yMarkup}
+
+              <!-- Portfolio area (blue) -->
+              <path d="${ppFill}" fill="rgba(55,138,221,0.15)"/>
+              <!-- Principal area (grey) layered on top — gap between the two = gains -->
+              <path d="${prFill}" fill="rgba(0,0,0,0.07)"/>
+
+              <!-- Target/gap dashed line -->
+              <line x1="${pl2}" y1="${targetY2}" x2="${cw2 - pr2}" y2="${targetY2}" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="5,3"/>
+              <text x="${cw2 - pr2}" y="${(targetYn - 4).toFixed(1)}" font-size="9" fill="#EF9F27" font-weight="600" text-anchor="end">Target: ${fmt(gapFundNeeded)}</text>
+
+              <!-- Lines -->
+              <path d="${prPath}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <path d="${ppPath}" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round"/>
+
+              <!-- X-axis labels -->
+              ${xLabels2}
+
+              <!-- Interactive overlays (hidden by default) -->
+              <line id="sipChart-crosshair" x1="0" y1="${pt2}" x2="0" y2="${ch2 - pb2}" stroke="rgba(0,0,0,0.2)" stroke-width="1" stroke-dasharray="3,2" style="display:none"/>
+              <circle id="sipChart-dot-p" cx="0" cy="0" r="4" fill="rgba(80,80,80,0.7)" stroke="white" stroke-width="1.5" style="display:none"/>
+              <circle id="sipChart-dot-v" cx="0" cy="0" r="4.5" fill="#378ADD" stroke="white" stroke-width="1.5" style="display:none"/>
+            </svg>
+          </div>
+
+          <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; margin-bottom:12px;">
+            <div class="leg"><div class="leg-dot" style="background:rgba(80,80,80,0.35);"></div><span>Principal invested (${fmt(totalPrincipal)} total over ${yearsToRetire} yrs)</span></div>
+            <div class="leg"><div class="leg-dot" style="background:#378ADD;"></div><span>Portfolio value (principal + gains)</span></div>
+            <div class="leg">
+              <svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#EF9F27" stroke-width="2" stroke-dasharray="4,2"/></svg>
+              <span>Target: ${fmt(gapFundNeeded)}</span>
+            </div>
+          </div>
+
+          <div style="padding:10px 14px; background:var(--color-bg-warning); border-radius:var(--radius-md); font-size:12px; color:var(--color-text-warning); line-height:1.6;">
+            ⚠️ <strong>Assumption Notice:</strong> The 8% annual return is an <strong>illustrative assumption only</strong> and is <strong>not a guarantee of future performance</strong>. Past returns do not predict future results. Unit trust and fund returns will vary. This does not constitute financial advice. Consult a licensed financial consultant before making any investment decisions.
+          </div>
+        </div>`;
+      }
+
       // --- Build Withdrawal Table (Based on Sustainable Amount) ---
       let inflTable = [];
       let totalDrawn = 0;
@@ -1125,6 +1281,8 @@
         </div>
       </div>
 
+      ${investmentSectionHtml}
+
       <!-- LEAD MAGNET CTA -->
       <div class="card" style="border: 1px solid var(--blue); background: var(--color-bg-info);">
         <div class="card-head" style="color: var(--color-text-info);">🚀 Next Step: Take Action on Your Future</div>
@@ -1257,6 +1415,68 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       });
       document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+    }
+
+    function handleSipChart(evt, svgEl) {
+      const id = svgEl.id;
+      const data = JSON.parse(svgEl.dataset.d); // [[yr, principal, portfolio], ...]
+      const pl = +svgEl.dataset.pl, pr = +svgEl.dataset.pr;
+      const pt = +svgEl.dataset.pt, pb = +svgEl.dataset.pb;
+      const vbW = +svgEl.dataset.vbw, vbH = +svgEl.dataset.vbh;
+      const years = +svgEl.dataset.years;
+      const maxY = +svgEl.dataset.maxy;
+      const cW = vbW - pl - pr, cH = vbH - pt - pb;
+
+      // Map mouse to SVG viewBox coordinates
+      const svgPt = svgEl.createSVGPoint();
+      svgPt.x = evt.clientX; svgPt.y = evt.clientY;
+      const sc = svgPt.matrixTransform(svgEl.getScreenCTM().inverse());
+
+      const idx = Math.max(0, Math.min(data.length - 1, Math.round((sc.x - pl) / cW * years)));
+      const d = data[idx]; // [yr, principal, portfolio]
+
+      const xPos = pl + (d[0] / years) * cW;
+      const getYv = val => pt + cH - (Math.min(Math.max(val, 0), maxY) / maxY) * cH;
+
+      // Crosshair
+      const ch2 = document.getElementById(id + '-crosshair');
+      ch2.setAttribute('x1', xPos); ch2.setAttribute('x2', xPos);
+      ch2.setAttribute('y1', pt); ch2.setAttribute('y2', vbH - pb);
+      ch2.style.display = '';
+
+      // Dots
+      const dp = document.getElementById(id + '-dot-p');
+      dp.setAttribute('cx', xPos); dp.setAttribute('cy', getYv(d[1]));
+      dp.style.display = '';
+
+      const dv = document.getElementById(id + '-dot-v');
+      dv.setAttribute('cx', xPos); dv.setAttribute('cy', getYv(d[2]));
+      dv.style.display = '';
+
+      // Tooltip content
+      const tip = document.getElementById(id + '-tooltip');
+      tip.style.display = '';
+      document.getElementById(id + '-tip-yr').textContent = 'Year ' + d[0];
+      document.getElementById(id + '-tip-principal').textContent = 'Principal: RM' + d[1].toLocaleString();
+      document.getElementById(id + '-tip-portfolio').textContent = 'Portfolio: RM' + d[2].toLocaleString();
+      document.getElementById(id + '-tip-gain').textContent = 'Gain: +RM' + Math.max(0, d[2] - d[1]).toLocaleString();
+
+      // Tooltip position
+      const wrapper = svgEl.parentElement;
+      const wRect = wrapper.getBoundingClientRect();
+      const tipW = tip.offsetWidth || 170;
+      let tx = evt.clientX - wRect.left + 14;
+      if (tx + tipW > wRect.width - 10) tx = evt.clientX - wRect.left - tipW - 14;
+      tip.style.left = Math.max(0, tx) + 'px';
+      tip.style.top = Math.max(0, evt.clientY - wRect.top - 30) + 'px';
+    }
+
+    function hideSipTooltip(svgEl) {
+      const id = svgEl.id;
+      ['tooltip', 'crosshair', 'dot-p', 'dot-v'].forEach(s => {
+        const el = document.getElementById(id + '-' + s);
+        if (el) el.style.display = 'none';
+      });
     }
   </script>
 </body>
