@@ -958,6 +958,9 @@
         const totalPrincipalARI = monthlyInvestNeededARI * 12 * yearsToRetire;
 
         const hasBothOptions = hasGoalGap && hasARIGap;
+        // When user's personal goal < Belanjawanku, closing ARI gap costs more than closing personal goal.
+        // ariCostsMore = true means we need to swap the Option 1/2 ordering so cheapest is always Option 1.
+        const ariCostsMore = hasBothOptions && monthlyInvestNeededARI > monthlyInvestNeeded;
 
         // Shared chart geometry
         const cw2 = 500, ch2 = 210, pl2 = 62, pr2 = 22, pt2 = 20, pb2 = 38;
@@ -1008,7 +1011,7 @@
                 <path d="${pp1f}" fill="rgba(99,153,34,0.12)"/>
                 <path d="${pr1f}" fill="rgba(0,0,0,0.07)"/>
                 <line x1="${pl2}" y1="${t1y}" x2="${cw2-pr2}" y2="${t1y}" stroke="#639922" stroke-width="1.5" stroke-dasharray="5,3"/>
-                <text x="${cw2-pr2}" y="${(t1yn-4).toFixed(1)}" font-size="9" fill="#639922" font-weight="600" text-anchor="end">Floor: ${fmt(gapFundNeededARI)}</text>
+                <text x="${cw2-pr2}" y="${(t1yn-4).toFixed(1)}" font-size="9" fill="#639922" font-weight="600" text-anchor="end">Belanjawanku: ${fmt(gapFundNeededARI)}</text>
                 <path d="${pr1}" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.5" stroke-dasharray="4,3"/>
                 <path d="${pp1}" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/>
                 ${xl1}
@@ -1020,7 +1023,7 @@
             <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;margin-bottom:12px;">
               <div class="leg"><div class="leg-dot" style="background:rgba(80,80,80,0.35);"></div><span>Principal invested (${fmt(totalPrincipalARI)} total over ${yearsToRetire} yrs)</span></div>
               <div class="leg"><div class="leg-dot" style="background:#639922;"></div><span>Portfolio value (principal + gains)</span></div>
-              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku floor: ${fmt(gapFundNeededARI)}</span></div>
+              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>
             </div>
           </div>`;
         }
@@ -1046,10 +1049,10 @@
           const floorYn = hasARIGap ? gY2r(gapFundNeededARI) : 0;
           const floorY = hasARIGap ? floorYn.toFixed(1) : '0';
           const floorSvg = hasARIGap
-            ? `<line x1="${pl2}" y1="${floorY}" x2="${cw2-pr2}" y2="${floorY}" stroke="#639922" stroke-width="1.5" stroke-dasharray="5,3"/><text x="${cw2-pr2}" y="${(floorYn-4).toFixed(1)}" font-size="9" fill="#639922" font-weight="600" text-anchor="end">Floor: ${fmt(gapFundNeededARI)}</text>`
+            ? `<line x1="${pl2}" y1="${floorY}" x2="${cw2-pr2}" y2="${floorY}" stroke="#639922" stroke-width="1.5" stroke-dasharray="5,3"/><text x="${cw2-pr2}" y="${(floorYn-4).toFixed(1)}" font-size="9" fill="#639922" font-weight="600" text-anchor="end">Belanjawanku: ${fmt(gapFundNeededARI)}</text>`
             : '';
           const floorLegend = hasARIGap
-            ? `<div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku floor: ${fmt(gapFundNeededARI)}</span></div>`
+            ? `<div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>`
             : '';
           let ym2 = '', xl2 = '';
           for (let i = 0; i <= 4; i++) {
@@ -1099,25 +1102,35 @@
         // --- Stat panels ---
         let statPanelsHtml = '';
         if (hasBothOptions) {
-          statPanelsHtml = `
-            <div class="split-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px;">
+          // ariCostsMore: user's personal goal < Belanjawanku, so closing Belanjawanku gap costs more.
+          // Always show cheapest option on the left as "Option 1", most expensive on right as "Option 2".
+          // Chart IDs are fixed: opt1=ARI chart, opt2=Goal chart. We just swap which card is on which side.
+          const cardARI = `
               <div class="split-card sip-option-card" id="sip-card-opt1"
-                style="border-color:var(--color-border);opacity:0.5;cursor:pointer;transition:opacity .15s,box-shadow .15s;"
+                style="border-color:${ariCostsMore ? 'var(--color-border)' : 'var(--color-border)'};opacity:${ariCostsMore ? '0.5' : '0.5'};cursor:pointer;transition:opacity .15s,box-shadow .15s;"
                 onclick="selectSipOption(1)">
-                <div class="split-label" style="color:var(--color-text-success);">Option 1 · Bare minimum</div>
+                <div class="split-label" style="color:var(--color-text-success);">${ariCostsMore ? 'Option 2' : 'Option 1'} · Belanjawanku standard</div>
                 <div class="split-main" style="color:var(--green);font-size:15px;">${fmt(monthlyInvestNeededARI)}/mo</div>
-                <div class="split-sub" style="margin-top:3px;">→ Covers Belanjawanku decent standard only</div>
+                <div class="split-sub" style="margin-top:3px;">→ Reaches Belanjawanku decent living floor</div>
                 <div class="split-sub" style="margin-top:6px;font-style:italic;">Click to see this projection ↑</div>
-              </div>
+              </div>`;
+          const cardGoal = `
               <div class="split-card sip-option-card" id="sip-card-opt2"
                 style="border-color:var(--color-border-info);opacity:1;cursor:default;box-shadow:0 0 0 1.5px var(--blue);transition:opacity .15s,box-shadow .15s;"
                 onclick="selectSipOption(2)">
-                <div class="split-label">Option 2 · Full retirement goal</div>
+                <div class="split-label">${ariCostsMore ? 'Option 1' : 'Option 2'} · ${ariCostsMore ? 'Your personal goal' : 'Full retirement goal'}</div>
                 <div class="split-main" style="color:var(--blue);font-size:15px;">${fmt(monthlyInvestNeeded)}/mo</div>
-                <div class="split-sub" style="margin-top:3px;">→ Covers your full target (includes Option 1)</div>
+                <div class="split-sub" style="margin-top:3px;">→ ${ariCostsMore ? 'Closes your personal retirement gap' : 'Covers your full target'}</div>
                 <div class="split-sub" style="margin-top:6px;font-style:italic;">Currently shown ✓</div>
-              </div>
+              </div>`;
+          const warnHtml = ariCostsMore
+            ? `<div style="font-size:11px;color:var(--color-text-warning,#92610a);margin-bottom:8px;padding:6px 10px;background:var(--color-bg-warning,#fef3c7);border-radius:var(--radius-sm,6px);">⚠ Your personal target is below the Belanjawanku national average. Option 2 is recommended for a decent standard of living.</div>`
+            : '';
+          statPanelsHtml = `
+            <div class="split-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px;">
+              ${ariCostsMore ? cardGoal + cardARI : cardARI + cardGoal}
             </div>
+            ${warnHtml}
             <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:16px;">These are independent — not additive. Click a card to see its own projection.</div>`;
         } else if (hasGoalGap) {
           statPanelsHtml = `
@@ -1137,7 +1150,9 @@
         }
 
         const introText = hasBothOptions
-          ? `Your EPF falls short of both the Belanjawanku minimum and your retirement goal. Select an option to see what each investment plan looks like.`
+          ? (ariCostsMore
+              ? `Your EPF falls short of both your retirement goal and the Belanjawanku minimum. Your personal target is below the national average — Option 2 closes the full Belanjawanku gap.`
+              : `Your EPF falls short of both the Belanjawanku minimum and your retirement goal. Select an option to see what each investment plan looks like.`)
           : hasARIGap
             ? `Your EPF meets your personal retirement goal but falls short of the Belanjawanku minimum. Here's what it takes to bridge that gap.`
             : `Your EPF already covers a decent standard of living. Here's what it takes to close the remaining gap to your personal retirement goal.`;
