@@ -466,13 +466,22 @@
     .verdict-title.danger {
       color: var(--color-text-danger);
     }
+    .verdict-title.danger::before {
+      content: '✕ ';
+    }
 
     .verdict-title.warn {
       color: var(--color-text-warning);
     }
+    .verdict-title.warn::before {
+      content: '⚠ ';
+    }
 
     .verdict-title.ok {
       color: var(--color-text-success);
+    }
+    .verdict-title.ok::before {
+      content: '✓ ';
     }
 
     .verdict-body {
@@ -1379,7 +1388,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;background:var(--color-bg-secondary);">
           <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of salary · at retirement, after inflation</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+            <div role="progressbar" aria-valuenow="${goalBarWidth}" aria-valuemin="0" aria-valuemax="100" aria-label="EPF covers ${goalBarWidth}% of your retirement goal" style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${goalBarColor};width:${goalBarWidth}%;transition:width .3s;"></div>
             </div>
             <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(needReal)}/mo</span>
@@ -1407,7 +1416,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--color-bg-secondary);">
           <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Decent standard of living · Belanjawanku national avg · ${currentYear}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+            <div role="progressbar" aria-valuenow="${ariBarWidth}" aria-valuemin="0" aria-valuemax="100" aria-label="EPF covers ${ariBarWidth}% of the Belanjawanku decent living standard" style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${ariBarColor};width:${ariBarWidth}%;transition:width .3s;"></div>
             </div>
             <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(belanjawankuNow)}/mo</span>
@@ -1420,7 +1429,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
         <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;background:var(--color-bg-secondary);">
           <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px;">Your retirement goal · ${(lifePct * 100).toFixed(0)}% of current lifestyle</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <div style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
+            <div role="progressbar" aria-valuenow="${targetBarWidth}" aria-valuemin="0" aria-valuemax="100" aria-label="EPF covers ${targetBarWidth}% of your ${(lifePct*100).toFixed(0)}% lifestyle target" style="flex:1;height:8px;border-radius:4px;background:var(--color-bg-tertiary);overflow:hidden;">
               <div style="height:100%;border-radius:4px;background:${targetBarColor};width:${targetBarWidth}%;transition:width .3s;"></div>
             </div>
             <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;min-width:80px;text-align:right;">${fmt(desiredLifestyleToday)}/mo</span>
@@ -1444,7 +1453,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
             ? "You are in a strong position! However, parking your surplus in generic funds might mean missing out on higher potential returns. Let's optimize your portfolio." 
             : "Don't panic. As a Licensed Public Mutual consultant, I can help you structure a personalized investment plan to bridge this <strong>" + fmt(waFundNeededGoal) + "</strong> shortfall."}
         </div>
-        <button id="share-result-btn" onclick="shareResult()" class="share-btn" style="margin-bottom:10px;display:none;">
+        <button id="share-result-btn" onclick="shareResult()" class="share-btn" style="margin-bottom:10px;">
           📸 Share My EPF Result
         </button>
         <a href="${waLink}" target="_blank" class="calc-btn" style="text-decoration:none; display:block; text-align:center; background: var(--blue); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
