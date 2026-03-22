@@ -1714,8 +1714,18 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       });
     }
 
+    function isInstagramBrowser() {
+      return /Instagram/.test(navigator.userAgent);
+    }
+
     async function shareResult() {
       if (!_shareData) return;
+
+      if (isInstagramBrowser()) {
+        alert('To save or share your result, please open this page in Safari or Chrome.\n\nTap the ··· menu (top right) → Open in Browser.');
+        return;
+      }
+
       const btn = document.getElementById('share-result-btn');
       const orig = btn.innerHTML;
       btn.innerHTML = 'Generating…';
