@@ -1338,12 +1338,12 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
       // --- Render ---
 
       const html = `
-    <div class="tab-row">
-      <button class="rtab active" onclick="showTab('summary', this)">Summary</button>
-      <button class="rtab" onclick="showTab('breakdown', this)">Step-by-step math</button>
+    <div class="tab-row" role="tablist">
+      <button class="rtab active" role="tab" aria-selected="true" aria-controls="tab-summary" onclick="showTab('summary', this)">Summary</button>
+      <button class="rtab" role="tab" aria-selected="false" aria-controls="tab-breakdown" onclick="showTab('breakdown', this)">Step-by-step math</button>
     </div>
 
-    <div id="tab-summary">
+    <div id="tab-summary" role="tabpanel">
       
       ${depletionAlertHtml}
 
@@ -1507,7 +1507,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
       </div>
     </div>
 
-    <div id="tab-breakdown" style="display:none">
+    <div id="tab-breakdown" role="tabpanel" style="display:none">
       <div class="card">
         <div class="card-head">Step-by-step calculation walkthrough</div>
         <div class="note-box">These are the exact steps used to arrive at every number in the summary.</div>
@@ -1543,6 +1543,8 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       const el = document.getElementById('results');
       el.style.display = 'block';
       el.innerHTML = html;
+      // Clear cached chart element refs — SVGs are recreated on each calculate()
+      for (const k in _sipChartEls) delete _sipChartEls[k];
       el.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1707,15 +1709,39 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
 
     function showTab(tab, btn) {
       ['summary', 'breakdown'].forEach(t => {
-        document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+        const panel = document.getElementById('tab-' + t);
+        if (panel) panel.style.display = t === tab ? 'block' : 'none';
       });
-      document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.rtab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+    }
+
+    // Cache per-chart DOM references so getElementById isn't called on every mousemove
+    const _sipChartEls = {};
+    function _getSipEls(id) {
+      if (!_sipChartEls[id]) {
+        _sipChartEls[id] = {
+          ch2: document.getElementById(id + '-crosshair'),
+          dp:  document.getElementById(id + '-dot-p'),
+          dv:  document.getElementById(id + '-dot-v'),
+          tip: document.getElementById(id + '-tooltip'),
+          yr:  document.getElementById(id + '-tip-yr'),
+          pri: document.getElementById(id + '-tip-principal'),
+          por: document.getElementById(id + '-tip-portfolio'),
+          gain:document.getElementById(id + '-tip-gain'),
+        };
+      }
+      return _sipChartEls[id];
     }
 
     function handleSipChart(evt, svgEl) {
       const id = svgEl.id;
       const data = JSON.parse(svgEl.dataset.d); // [[yr, principal, portfolio], ...]
+      if (!data.length) return;
       const pl = +svgEl.dataset.pl, pr = +svgEl.dataset.pr;
       const pt = +svgEl.dataset.pt, pb = +svgEl.dataset.pb;
       const vbW = +svgEl.dataset.vbw, vbH = +svgEl.dataset.vbh;
@@ -1734,37 +1760,42 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       const xPos = pl + (d[0] / years) * cW;
       const getYv = val => pt + cH - (Math.min(Math.max(val, 0), maxY) / maxY) * cH;
 
+      const els = _getSipEls(id);
+
       // Crosshair
-      const ch2 = document.getElementById(id + '-crosshair');
-      ch2.setAttribute('x1', xPos); ch2.setAttribute('x2', xPos);
-      ch2.setAttribute('y1', pt); ch2.setAttribute('y2', vbH - pb);
-      ch2.style.display = '';
+      if (els.ch2) {
+        els.ch2.setAttribute('x1', xPos); els.ch2.setAttribute('x2', xPos);
+        els.ch2.setAttribute('y1', pt); els.ch2.setAttribute('y2', vbH - pb);
+        els.ch2.style.display = '';
+      }
 
       // Dots
-      const dp = document.getElementById(id + '-dot-p');
-      dp.setAttribute('cx', xPos); dp.setAttribute('cy', getYv(d[1]));
-      dp.style.display = '';
-
-      const dv = document.getElementById(id + '-dot-v');
-      dv.setAttribute('cx', xPos); dv.setAttribute('cy', getYv(d[2]));
-      dv.style.display = '';
+      if (els.dp) {
+        els.dp.setAttribute('cx', xPos); els.dp.setAttribute('cy', getYv(d[1]));
+        els.dp.style.display = '';
+      }
+      if (els.dv) {
+        els.dv.setAttribute('cx', xPos); els.dv.setAttribute('cy', getYv(d[2]));
+        els.dv.style.display = '';
+      }
 
       // Tooltip content
-      const tip = document.getElementById(id + '-tooltip');
-      tip.style.display = '';
-      document.getElementById(id + '-tip-yr').textContent = 'Year ' + d[0];
-      document.getElementById(id + '-tip-principal').textContent = 'Principal: RM' + d[1].toLocaleString();
-      document.getElementById(id + '-tip-portfolio').textContent = 'Portfolio: RM' + d[2].toLocaleString();
-      document.getElementById(id + '-tip-gain').textContent = 'Gain: +RM' + Math.max(0, d[2] - d[1]).toLocaleString();
+      if (els.tip) {
+        els.tip.style.display = '';
+        if (els.yr)   els.yr.textContent   = 'Year ' + d[0];
+        if (els.pri)  els.pri.textContent  = 'Principal: RM' + d[1].toLocaleString();
+        if (els.por)  els.por.textContent  = 'Portfolio: RM' + d[2].toLocaleString();
+        if (els.gain) els.gain.textContent = 'Gain: +RM' + Math.max(0, d[2] - d[1]).toLocaleString();
 
-      // Tooltip position
-      const wrapper = svgEl.parentElement;
-      const wRect = wrapper.getBoundingClientRect();
-      const tipW = tip.offsetWidth || 170;
-      let tx = evt.clientX - wRect.left + 14;
-      if (tx + tipW > wRect.width - 10) tx = evt.clientX - wRect.left - tipW - 14;
-      tip.style.left = Math.max(0, tx) + 'px';
-      tip.style.top = Math.max(0, evt.clientY - wRect.top - 30) + 'px';
+        // Tooltip position
+        const wrapper = svgEl.parentElement;
+        const wRect = wrapper.getBoundingClientRect();
+        const tipW = els.tip.offsetWidth || 170;
+        let tx = evt.clientX - wRect.left + 14;
+        if (tx + tipW > wRect.width - 10) tx = evt.clientX - wRect.left - tipW - 14;
+        els.tip.style.left = Math.max(0, tx) + 'px';
+        els.tip.style.top = Math.max(0, evt.clientY - wRect.top - 30) + 'px';
+      }
     }
 
     function hideSipTooltip(svgEl) {
