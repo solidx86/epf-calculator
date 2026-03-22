@@ -551,6 +551,18 @@
       text-align: center;
       line-height: 1.6;
     }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
   </style>
 </head>
 
@@ -567,21 +579,21 @@
       <div class="section-head">About You</div>
       <div class="field-grid">
         <div class="field" style="grid-column: 1 / -1;">
-          <label>Your Name <span style="color:var(--color-text-danger);">*</span></label>
-          <input type="text" id="userName" placeholder="e.g. Ahmad" style="max-width:280px;" required>
+          <label for="userName">Your Name <span style="color:var(--color-text-danger);" aria-hidden="true">*</span><span class="sr-only">(required)</span></label>
+          <input type="text" id="userName" placeholder="e.g. Ahmad" style="max-width:280px;" required aria-required="true">
         </div>
         <div class="field">
-          <label>Current Age</label>
+          <label for="age">Current Age</label>
           <input type="number" id="age" value="40" min="20" max="59">
         </div>
         <div class="field">
-          <label>Current Monthly Income (RM)</label>
+          <label for="income">Current Monthly Income (RM)</label>
           <input type="number" id="income" value="5000" min="1000">
         </div>
         <div class="field">
-          <label>Current EPF Balance (RM)</label>
-          <input type="number" id="epfBalance" value="200000" min="0">
-          <div class="field-note">Check your KWSP i-Akaun app or EPF annual statement</div>
+          <label for="epfBalance">Current EPF Balance (RM)</label>
+          <input type="number" id="epfBalance" value="200000" min="0" aria-describedby="epfBalance-note">
+          <div class="field-note" id="epfBalance-note">Check your KWSP i-Akaun app or EPF annual statement</div>
         </div>
       </div>
 
@@ -594,46 +606,46 @@
           <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-secondary); margin-bottom:10px;">Retirement Plan</div>
           <div class="field-grid">
             <div class="field">
-              <label>Retirement Age</label>
+              <label for="retireAge">Retirement Age</label>
               <input type="number" id="retireAge" value="60" min="50" max="70">
             </div>
             <div class="field">
-              <label>Life Expectancy</label>
-              <input type="number" id="lifeExp" value="80" min="65" max="95">
-              <div class="field-note">Malaysian average is ~75. Plan for 80+ — people are living longer thanks to better healthcare.</div>
+              <label for="lifeExp">Life Expectancy</label>
+              <input type="number" id="lifeExp" value="80" min="65" max="95" aria-describedby="lifeExp-note">
+              <div class="field-note" id="lifeExp-note">Malaysian average is ~75. Plan for 80+ — people are living longer thanks to better healthcare.</div>
             </div>
             <div class="field">
-              <label>Target retirement income (% of current income)</label>
-              <input type="number" id="lifestylePct" value="70" min="50" max="100">
-              <div class="field-note">70% means you want RM7,000/mo in retirement if you earn RM10,000/mo today. World Bank recommends 70% as the minimum to maintain your current lifestyle.</div>
+              <label for="lifestylePct">Target retirement income (% of current income)</label>
+              <input type="number" id="lifestylePct" value="70" min="50" max="100" aria-describedby="lifestylePct-note">
+              <div class="field-note" id="lifestylePct-note">70% means you want RM7,000/mo in retirement if you earn RM10,000/mo today. World Bank recommends 70% as the minimum to maintain your current lifestyle.</div>
             </div>
           </div>
 
           <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-text-secondary); margin-top:18px; margin-bottom:10px; padding-top:15px; border-top:0.5px solid var(--color-border);">Rates &amp; Assumptions</div>
           <div class="field-grid">
             <div class="field">
-              <label>EPF yearly dividend rate (%)</label>
-              <input type="number" id="epfDiv" value="5" min="1" max="10" step="0.1">
-              <div class="field-note">The annual return EPF pays on your savings while you're still working. Historical average is around 5–6%.</div>
+              <label for="epfDiv">EPF yearly dividend rate (%)</label>
+              <input type="number" id="epfDiv" value="5" min="1" max="10" step="0.1" aria-describedby="epfDiv-note">
+              <div class="field-note" id="epfDiv-note">The annual return EPF pays on your savings while you're still working. Historical average is around 5–6%.</div>
             </div>
             <div class="field">
-              <label>Annual Salary Growth (%)</label>
+              <label for="salaryGrowth">Annual Salary Growth (%)</label>
               <input type="number" id="salaryGrowth" value="3" min="0" max="10" step="0.1">
             </div>
             <div class="field">
-              <label>Inflation rate (%)</label>
-              <input type="number" id="inflation" value="4" min="3" max="6" step="0.1">
-              <div class="field-note">How fast prices rise each year. At 4%, RM100 today costs ~RM149 in 10 years — your money buys less over time.</div>
+              <label for="inflation">Inflation rate (%)</label>
+              <input type="number" id="inflation" value="4" min="3" max="6" step="0.1" aria-describedby="inflation-note">
+              <div class="field-note" id="inflation-note">How fast prices rise each year. At 4%, RM100 today costs ~RM149 in 10 years — your money buys less over time.</div>
             </div>
             <div class="field">
-              <label>Your EPF contribution rate (%)</label>
-              <input type="number" id="employeeContrib" value="11" min="7" max="15" step="0.5">
-              <div class="field-note">Your share is 11% by default. Your employer adds another 12–13% on top (required by law) — both go into your EPF.</div>
+              <label for="employeeContrib">Your EPF contribution rate (%)</label>
+              <input type="number" id="employeeContrib" value="11" min="7" max="15" step="0.5" aria-describedby="employeeContrib-note">
+              <div class="field-note" id="employeeContrib-note">Your share is 11% by default. Your employer adds another 12–13% on top (required by law) — both go into your EPF.</div>
             </div>
             <div class="field">
-              <label>Return on EPF savings during retirement (%)</label>
-              <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1">
-              <div class="field-note">Your remaining EPF balance keeps earning returns even as you withdraw. This is the assumed annual rate during retirement.</div>
+              <label for="postRetireRate">Return on EPF savings during retirement (%)</label>
+              <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1" aria-describedby="postRetireRate-note">
+              <div class="field-note" id="postRetireRate-note">Your remaining EPF balance keeps earning returns even as you withdraw. This is the assumed annual rate during retirement.</div>
             </div>
           </div>
 
@@ -1053,7 +1065,9 @@
                 <div id="sipChart-opt1-tip-portfolio" style="color:#639922;"></div>
                 <div id="sipChart-opt1-tip-gain" style="color:#639922;"></div>
               </div>
-              <svg id="sipChart-opt1" viewBox="0 0 ${cw2} ${ch2}" data-d='${d1JSON}' data-pl="${pl2}" data-pr="${pr2}" data-pt="${pt2}" data-pb="${pb2}" data-vbw="${cw2}" data-vbh="${ch2}" data-years="${yearsToRetire}" data-maxy="${maxY1.toFixed(0)}" onmousemove="handleSipChart(event,this)" onmouseleave="hideSipTooltip(this)" style="width:100%;height:auto;overflow:visible;cursor:crosshair;display:block;">
+              <svg id="sipChart-opt1" viewBox="0 0 ${cw2} ${ch2}" data-d='${d1JSON}' data-pl="${pl2}" data-pr="${pr2}" data-pt="${pt2}" data-pb="${pb2}" data-vbw="${cw2}" data-vbh="${ch2}" data-years="${yearsToRetire}" data-maxy="${maxY1.toFixed(0)}" onmousemove="handleSipChart(event,this)" onmouseleave="hideSipTooltip(this)" style="width:100%;height:auto;overflow:visible;cursor:crosshair;display:block;" role="img" aria-labelledby="sipChart-opt1-title" aria-describedby="sipChart-opt1-desc">
+                <title id="sipChart-opt1-title">Investment growth projection — Belanjawanku gap</title>
+                <desc id="sipChart-opt1-desc">Line chart showing projected portfolio growth over ${yearsToRetire} years. Investing ${fmt(monthlyInvestNeededARI)}/month at an 8% annual return grows to the Belanjawanku target of ${fmt(gapFundNeededARI)}. Hover over the chart for year-by-year values.</desc>
                 <line x1="${pl2}" y1="${pt2}" x2="${pl2}" y2="${ch2-pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
                 <line x1="${pl2}" y1="${ch2-pb2}" x2="${cw2-pr2}" y2="${ch2-pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
                 ${ym1}
@@ -1072,7 +1086,7 @@
             <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;margin-bottom:12px;">
               <div class="leg"><div class="leg-dot" style="background:rgba(80,80,80,0.35);"></div><span>Principal invested (${fmt(totalPrincipalARI)} total over ${yearsToRetire} yrs)</span></div>
               <div class="leg"><div class="leg-dot" style="background:#639922;"></div><span>Portfolio value (principal + gains)</span></div>
-              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>
+              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>
             </div>
           </div>`;
         }
@@ -1101,7 +1115,7 @@
             ? `<line x1="${pl2}" y1="${floorY}" x2="${cw2-pr2}" y2="${floorY}" stroke="#639922" stroke-width="1.5" stroke-dasharray="5,3"/><text x="${cw2-pr2}" y="${(floorYn-4).toFixed(1)}" font-size="9" fill="#639922" font-weight="600" text-anchor="end">Belanjawanku: ${fmt(gapFundNeededARI)}</text>`
             : '';
           const floorLegend = hasARIGap
-            ? `<div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>`
+            ? `<div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><line x1="0" y1="5" x2="16" y2="5" stroke="#639922" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Belanjawanku goal: ${fmt(gapFundNeededARI)}</span></div>`
             : '';
           let ym2 = '', xl2 = '';
           for (let i = 0; i <= 4; i++) {
@@ -1122,7 +1136,9 @@
                 <div id="sipChart-opt2-tip-portfolio" style="color:var(--blue);"></div>
                 <div id="sipChart-opt2-tip-gain" style="color:var(--green);"></div>
               </div>
-              <svg id="sipChart-opt2" viewBox="0 0 ${cw2} ${ch2}" data-d='${d2JSON}' data-pl="${pl2}" data-pr="${pr2}" data-pt="${pt2}" data-pb="${pb2}" data-vbw="${cw2}" data-vbh="${ch2}" data-years="${yearsToRetire}" data-maxy="${maxY2.toFixed(0)}" onmousemove="handleSipChart(event,this)" onmouseleave="hideSipTooltip(this)" style="width:100%;height:auto;overflow:visible;cursor:crosshair;display:block;">
+              <svg id="sipChart-opt2" viewBox="0 0 ${cw2} ${ch2}" data-d='${d2JSON}' data-pl="${pl2}" data-pr="${pr2}" data-pt="${pt2}" data-pb="${pb2}" data-vbw="${cw2}" data-vbh="${ch2}" data-years="${yearsToRetire}" data-maxy="${maxY2.toFixed(0)}" onmousemove="handleSipChart(event,this)" onmouseleave="hideSipTooltip(this)" style="width:100%;height:auto;overflow:visible;cursor:crosshair;display:block;" role="img" aria-labelledby="sipChart-opt2-title" aria-describedby="sipChart-opt2-desc">
+                <title id="sipChart-opt2-title">Investment growth projection — full retirement goal</title>
+                <desc id="sipChart-opt2-desc">Line chart showing projected portfolio growth over ${yearsToRetire} years. Investing ${fmt(monthlyInvestNeeded)}/month at an 8% annual return grows to your retirement goal of ${fmt(gapFundNeeded)}. Hover over the chart for year-by-year values.</desc>
                 <line x1="${pl2}" y1="${pt2}" x2="${pl2}" y2="${ch2-pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
                 <line x1="${pl2}" y1="${ch2-pb2}" x2="${cw2-pr2}" y2="${ch2-pb2}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
                 ${ym2}
@@ -1143,7 +1159,7 @@
               <div class="leg"><div class="leg-dot" style="background:rgba(80,80,80,0.35);"></div><span>Principal invested (${fmt(totalPrincipal)} total over ${yearsToRetire} yrs)</span></div>
               <div class="leg"><div class="leg-dot" style="background:#378ADD;"></div><span>Portfolio value (principal + gains)</span></div>
               ${floorLegend}
-              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px"><line x1="0" y1="5" x2="16" y2="5" stroke="#EF9F27" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Your retirement goal: ${fmt(gapFundNeeded)}</span></div>
+              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><line x1="0" y1="5" x2="16" y2="5" stroke="#EF9F27" stroke-width="2" stroke-dasharray="4,2"/></svg><span>Your retirement goal: ${fmt(gapFundNeeded)}</span></div>
             </div>
           </div>`;
         }
@@ -1264,7 +1280,9 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
           
           <div style="margin-top:20px; background:rgba(255,255,255,0.4); border-radius:8px; padding:15px;">
             <div style="font-size:12px; font-weight:600; color:var(--color-text-danger); margin-bottom:10px; text-align:center">Projected Fund Depletion</div>
-            <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; overflow:visible;">
+            <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; overflow:visible;" role="img" aria-labelledby="depletion-chart-title" aria-describedby="depletion-chart-desc">
+              <title id="depletion-chart-title">Projected EPF fund depletion</title>
+              <desc id="depletion-chart-desc">Line chart showing your EPF balance declining from ${fmt(epfAtRetire)} at retirement age ${minAge}, reaching zero at age ${depletionAgeString} — ${gapYears.toFixed(1)} years before your life expectancy of ${lifeExp}.</desc>
               <!-- Grid lines -->
               <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
               <line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
