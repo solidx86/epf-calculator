@@ -1295,30 +1295,80 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
 
       if (accurateDepletionAge < lifeExp) {
         const gapYears = lifeExp - accurateDepletionAge;
-        
-        // -- Generate SVG Chart --
-        const w = 500, h = 180;
-        const padL = 40, padR = 20, padT = 20, padB = 30;
-        const chartW = w - padL - padR;
-        const chartH = h - padT - padB;
-        
-        const maxVal = epfAtRetire;
-        const minAge = retireAge;
-        const maxAge = chartData[chartData.length - 1].age;
-        const ageSpan = maxAge - minAge;
-        
-        // Helper to map data to SVG coordinates
-        const getX = (age) => padL + ((age - minAge) / ageSpan) * chartW;
-        const getY = (bal) => padT + chartH - (bal / maxVal) * chartH;
-        
-        // Build path
-        let pathD = `M ${getX(chartData[0].age)} ${getY(chartData[0].bal)} `;
+
+        // -- Ideal fund needed to sustain lifestyle exactly to life expectancy --
+        const idealFundNeeded = Math.abs(r - g) < 1e-6
+          ? needReal * 12 * N
+          : needReal * 12 * (1 - Math.pow(k, N)) / (1 - k);
+
+        // -- Simulate ideal depletion (same logic as chartData, depletes at lifeExp) --
+        let idealBal = idealFundNeeded;
+        let idealDraw = needReal * 12;
+        const idealByYear = { 0: Math.round(idealFundNeeded) };
+        for (let y = 1; y <= N; y++) {
+          idealBal -= idealDraw;
+          idealBal = Math.max(0, idealBal) * (1 + r);
+          idealByYear[y] = y === N ? 0 : Math.round(Math.max(0, idealBal));
+          idealDraw *= (1 + g);
+        }
+
+        // -- Map chartData to year index (integer ages only) --
+        const actualByYear = {};
         chartData.forEach(d => {
-          pathD += `L ${getX(d.age)} ${getY(d.bal)} `;
+          const yr = Math.round(d.age - retireAge);
+          if (Math.abs(d.age - retireAge - yr) < 0.5)
+            actualByYear[yr] = Math.round(Math.max(0, d.bal));
         });
-        
-        // Fill area
-        const fillD = pathD + `L ${getX(maxAge)} ${getY(0)} L ${getX(minAge)} ${getY(0)} Z`;
+
+        // -- Combined data: [age, actualBal, idealBal] --
+        const dcData = [];
+        for (let y = 0; y <= N; y++)
+          dcData.push([retireAge + y, actualByYear[y] ?? 0, idealByYear[y] ?? 0]);
+        const dcJSON = JSON.stringify(dcData);
+
+        // -- Chart dimensions --
+        const dcW = 500, dcH = 210;
+        const dcPL = 50, dcPR = 20, dcPT = 22, dcPB = 32;
+        const dcCW = dcW - dcPL - dcPR, dcCH = dcH - dcPT - dcPB;
+        const dcMaxY = idealFundNeeded * 1.08;
+        const dcX  = age => (dcPL + ((age - retireAge) / N) * dcCW).toFixed(1);
+        const dcYn = val => dcPT + dcCH - (Math.min(Math.max(val, 0), dcMaxY) / dcMaxY) * dcCH;
+        const dcY  = val => dcYn(val).toFixed(1);
+
+        // Y-axis grid + labels
+        let dcGrid = '';
+        for (let i = 0; i <= 4; i++) {
+          const v = (dcMaxY / 4) * i, yn = dcYn(v);
+          const lb = v === 0 ? '0' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : Math.round(v/1e3)+'k';
+          dcGrid += `<text x="${dcPL-4}" y="${(yn+3.5).toFixed(1)}" font-size="9" fill="rgba(0,0,0,0.35)" text-anchor="end">RM${lb}</text>`;
+          dcGrid += `<line x1="${dcPL}" y1="${yn.toFixed(1)}" x2="${dcW-dcPR}" y2="${yn.toFixed(1)}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
+        }
+
+        // X-axis labels
+        let dcXLabels = '';
+        [retireAge, Math.round((retireAge + lifeExp) / 2), lifeExp].forEach(a =>
+          dcXLabels += `<text x="${dcX(a)}" y="${dcH-8}" font-size="10" fill="rgba(0,0,0,0.4)" text-anchor="middle">${a}</text>`
+        );
+
+        // Actual EPF path + fill
+        let actualPath = '';
+        dcData.forEach((d, i) => { actualPath += (i === 0 ? `M ${dcX(d[0])} ${dcY(d[1])}` : ` L ${dcX(d[0])} ${dcY(d[1])}`); });
+        const actualFill = actualPath + ` L ${dcX(dcData[dcData.length-1][0])} ${(dcPT+dcCH).toFixed(1)} L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
+
+        // Ideal path + fill
+        let idealPath = '';
+        dcData.forEach((d, i) => { idealPath += (i === 0 ? `M ${dcX(d[0])} ${dcY(d[2])}` : ` L ${dcX(d[0])} ${dcY(d[2])}`); });
+        const idealFill = idealPath + ` L ${dcX(lifeExp)} ${(dcPT+dcCH).toFixed(1)} L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
+
+        // Gap zone (unfunded years: depletion → life expectancy)
+        const dcDepXv = dcPL + ((accurateDepletionAge - retireAge) / N) * dcCW;
+        const dcLifeXv = dcPL + dcCW; // = dcW - dcPR (lifeExp is always rightmost)
+        const dcGapZone = `M ${dcDepXv.toFixed(1)} ${dcPT} L ${dcLifeXv.toFixed(1)} ${dcPT} L ${dcLifeXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)} L ${dcDepXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)} Z`;
+
+        // Label positions — avoid overflow into Y-axis or collision with life exp label
+        const depLabelGap = dcLifeXv - dcDepXv;
+        const depLabelAnchor = dcDepXv < dcPL + 45 ? 'start' : depLabelGap < 85 ? 'end' : 'middle';
+        const depLabelX = dcDepXv < dcPL + 45 ? dcPL + 2 : dcDepXv;
 
         depletionAlertHtml = `
         <div class="card" style="background:var(--color-bg-danger); border:1px solid var(--color-border-danger);">
@@ -1326,31 +1376,57 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
           <div style="font-size:14px; line-height:1.6; color:var(--color-text-danger);">
             To sustain your target lifestyle of <strong>${fmt(needCurrent)}/mo</strong> (in today's money), your EPF savings are projected to run out at age <strong>${depletionAgeString}</strong> — leaving you with no income for the remaining <strong>${gapYears.toFixed(1)} years</strong> of your life.
           </div>
-          
-          <div style="margin-top:20px; background:rgba(255,255,255,0.4); border-radius:8px; padding:15px;">
-            <div style="font-size:12px; font-weight:600; color:var(--color-text-danger); margin-bottom:10px; text-align:center">Projected Fund Depletion</div>
-            <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; overflow:visible;" role="img" aria-labelledby="depletion-chart-title" aria-describedby="depletion-chart-desc">
-              <title id="depletion-chart-title">Projected EPF fund depletion</title>
-              <desc id="depletion-chart-desc">Line chart showing your EPF balance declining from ${fmt(epfAtRetire)} at retirement age ${minAge}, reaching zero at age ${depletionAgeString} — ${gapYears.toFixed(1)} years before your life expectancy of ${lifeExp}.</desc>
-              <!-- Grid lines -->
-              <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
-              <line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
-              
-              <!-- Chart -->
-              <path d="${fillD}" fill="rgba(226, 75, 74, 0.15)" />
-              <path d="${pathD}" fill="none" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round" />
-              
-              <!-- Labels -->
-              <circle cx="${getX(minAge)}" cy="${getY(epfAtRetire)}" r="3" fill="#E24B4A" />
-              <text x="${getX(minAge)}" y="${getY(epfAtRetire) - 10}" font-size="11" fill="#E24B4A" font-weight="bold" text-anchor="start">Age ${minAge}: ${fmt(epfAtRetire)}</text>
-              
-              <circle cx="${getX(maxAge)}" cy="${getY(0)}" r="3" fill="#E24B4A" />
-              <text x="${getX(maxAge)}" y="${getY(0) - 10}" font-size="11" fill="#E24B4A" font-weight="bold" text-anchor="end">Empty by Age ${depletionAgeString}</text>
-              
-              <!-- X Axis Labels -->
-              <text x="${padL}" y="${h-10}" font-size="10" fill="rgba(0,0,0,0.5)" text-anchor="middle">${minAge}</text>
-              <text x="${w-padR}" y="${h-10}" font-size="10" fill="rgba(0,0,0,0.5)" text-anchor="middle">${maxAge.toFixed(1)}</text>
+
+          <div style="margin-top:20px; position:relative; background:var(--color-bg-secondary); border-radius:8px; padding:14px 8px 4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--color-text-danger); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em; padding:0 6px;">Projected Fund Balance · hover to explore</div>
+            <div id="depletionChart-tooltip" style="display:none;position:absolute;background:var(--color-bg);border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:8px 10px;font-size:11px;pointer-events:none;z-index:10;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+              <div id="depletionChart-tip-age" style="font-weight:700;color:var(--color-text-primary);margin-bottom:3px;"></div>
+              <div id="depletionChart-tip-actual" style="color:#E24B4A;"></div>
+              <div id="depletionChart-tip-ideal" style="color:#EF9F27;"></div>
+            </div>
+            <svg id="depletionChart"
+              viewBox="0 0 ${dcW} ${dcH}"
+              data-d='${dcJSON}'
+              data-pl="${dcPL}" data-pr="${dcPR}" data-pt="${dcPT}" data-pb="${dcPB}"
+              data-vbw="${dcW}" data-vbh="${dcH}"
+              data-minage="${retireAge}" data-n="${N}"
+              data-maxy="${dcMaxY.toFixed(0)}"
+              onmousemove="handleDepletionChart(event,this)"
+              onmouseleave="hideDepletionTooltip()"
+              style="width:100%;height:auto;overflow:visible;cursor:crosshair;display:block;"
+              role="img" aria-labelledby="depletionChart-title" aria-describedby="depletionChart-desc">
+              <title id="depletionChart-title">Projected EPF fund balance vs fund needed</title>
+              <desc id="depletionChart-desc">Line chart showing your EPF balance (red) declining from ${fmt(epfAtRetire)} at retirement age ${retireAge}, reaching zero at age ${depletionAgeString} — ${gapYears.toFixed(1)} years before your life expectancy of ${lifeExp}. The amber dashed line shows the ${fmt(idealFundNeeded)} fund you would have needed to sustain your lifestyle until age ${lifeExp}.</desc>
+              <!-- Axes -->
+              <line x1="${dcPL}" y1="${dcPT}" x2="${dcPL}" y2="${dcPT+dcCH}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+              <line x1="${dcPL}" y1="${dcPT+dcCH}" x2="${dcW-dcPR}" y2="${dcPT+dcCH}" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+              ${dcGrid}
+              <!-- Unfunded gap zone -->
+              <path d="${dcGapZone}" fill="rgba(226,75,74,0.07)"/>
+              <!-- Ideal fund fill -->
+              <path d="${idealFill}" fill="rgba(239,159,39,0.1)"/>
+              <!-- Actual EPF fill -->
+              <path d="${actualFill}" fill="rgba(226,75,74,0.2)"/>
+              <!-- Actual EPF line -->
+              <path d="${actualPath}" fill="none" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- Ideal (needed) fund line -->
+              <path d="${idealPath}" fill="none" stroke="#EF9F27" stroke-width="2" stroke-dasharray="6,3" stroke-linecap="round"/>
+              <!-- Life expectancy line -->
+              <line x1="${dcLifeXv.toFixed(1)}" y1="${dcPT}" x2="${dcLifeXv.toFixed(1)}" y2="${dcPT+dcCH}" stroke="rgba(0,0,0,0.25)" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <text x="${dcLifeXv.toFixed(1)}" y="${(dcPT-6).toFixed(1)}" font-size="9" fill="rgba(0,0,0,0.45)" text-anchor="end">Life exp. (${lifeExp})</text>
+              <!-- Depletion line -->
+              <line x1="${dcDepXv.toFixed(1)}" y1="${dcPT}" x2="${dcDepXv.toFixed(1)}" y2="${dcPT+dcCH}" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <text x="${depLabelX.toFixed(1)}" y="${(dcPT-6).toFixed(1)}" font-size="9" fill="#E24B4A" font-weight="600" text-anchor="${depLabelAnchor}">Depleted (${depletionAgeString})</text>
+              ${dcXLabels}
+              <!-- Interactive elements (hidden until hover) -->
+              <line id="depletionChart-crosshair" x1="0" y1="${dcPT}" x2="0" y2="${dcPT+dcCH}" stroke="rgba(0,0,0,0.2)" stroke-width="1" stroke-dasharray="3,2" style="display:none"/>
+              <circle id="depletionChart-dot-actual" cx="0" cy="0" r="4" fill="#E24B4A" stroke="white" stroke-width="1.5" style="display:none"/>
+              <circle id="depletionChart-dot-ideal" cx="0" cy="0" r="4" fill="#EF9F27" stroke="white" stroke-width="1.5" style="display:none"/>
             </svg>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;margin-bottom:10px;padding:0 6px;">
+              <div class="leg"><div class="leg-dot" style="background:#E24B4A;"></div><span>Your EPF balance (starts at ${fmt(epfAtRetire)})</span></div>
+              <div class="leg"><svg width="16" height="10" viewBox="0 0 16 10" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><line x1="0" y1="5" x2="16" y2="5" stroke="#EF9F27" stroke-width="2" stroke-dasharray="5,3"/></svg><span>Fund needed to reach age ${lifeExp}: ${fmt(idealFundNeeded)}</span></div>
+            </div>
           </div>
         </div>`;
       }
@@ -1901,6 +1977,59 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
         if (chart) chart.style.display = isActive ? 'block' : 'none';
       });
     }
+    function handleDepletionChart(evt, svgEl) {
+      if (!svgEl._dcData) svgEl._dcData = JSON.parse(svgEl.dataset.d);
+      const data = svgEl._dcData; // [[age, actualBal, idealBal], ...]
+      if (!data.length) return;
+      const pl = +svgEl.dataset.pl, pr = +svgEl.dataset.pr;
+      const pt = +svgEl.dataset.pt, pb = +svgEl.dataset.pb;
+      const vbW = +svgEl.dataset.vbw, vbH = +svgEl.dataset.vbh;
+      const minAge = +svgEl.dataset.minage, N = +svgEl.dataset.n;
+      const maxY = +svgEl.dataset.maxy;
+      const cW = vbW - pl - pr, cH = vbH - pt - pb;
+
+      const svgPt = svgEl.createSVGPoint();
+      svgPt.x = evt.clientX; svgPt.y = evt.clientY;
+      const sc = svgPt.matrixTransform(svgEl.getScreenCTM().inverse());
+      const idx = Math.max(0, Math.min(data.length - 1, Math.round((sc.x - pl) / cW * N)));
+      const d = data[idx]; // [age, actualBal, idealBal]
+
+      const xPos = pl + ((d[0] - minAge) / N) * cW;
+      const getYv = val => pt + cH - (Math.min(Math.max(val, 0), maxY) / maxY) * cH;
+
+      const ch = document.getElementById('depletionChart-crosshair');
+      if (ch) { ch.setAttribute('x1', xPos); ch.setAttribute('x2', xPos); ch.style.display = ''; }
+
+      const dotA = document.getElementById('depletionChart-dot-actual');
+      if (dotA) { dotA.setAttribute('cx', xPos); dotA.setAttribute('cy', getYv(d[1])); dotA.style.display = d[1] > 0 ? '' : 'none'; }
+
+      const dotI = document.getElementById('depletionChart-dot-ideal');
+      if (dotI) { dotI.setAttribute('cx', xPos); dotI.setAttribute('cy', getYv(d[2])); dotI.style.display = ''; }
+
+      const tip = document.getElementById('depletionChart-tooltip');
+      if (tip) {
+        tip.style.display = '';
+        const el = id => document.getElementById('depletionChart-tip-' + id);
+        if (el('age'))    el('age').textContent    = 'Age ' + d[0];
+        if (el('actual')) el('actual').textContent = d[1] > 0 ? 'Your EPF: RM' + d[1].toLocaleString() : 'Your EPF: Depleted ⚠️';
+        if (el('ideal'))  el('ideal').textContent  = 'Needed: RM' + d[2].toLocaleString();
+        const wrapper = svgEl.parentElement;
+        const wRect = wrapper.getBoundingClientRect();
+        const tipW = tip.offsetWidth || 170;
+        let tx = evt.clientX - wRect.left + 14;
+        if (tx + tipW > wRect.width - 10) tx = evt.clientX - wRect.left - tipW - 14;
+        tip.style.left = Math.max(0, tx) + 'px';
+        tip.style.top = Math.max(0, evt.clientY - wRect.top - 30) + 'px';
+      }
+    }
+
+    function hideDepletionTooltip() {
+      ['tooltip', 'crosshair', 'dot-actual', 'dot-ideal'].forEach(s => {
+        const el = document.getElementById('depletionChart-' + s);
+        if (el) el.style.display = 'none';
+      });
+    }
+
     document.getElementById('calc-btn').addEventListener('click', calculate);
     document.getElementById('reset-btn').addEventListener('click', resetCalc);
   </script>
