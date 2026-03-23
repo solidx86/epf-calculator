@@ -676,9 +676,9 @@
               <div class="field-note" id="employeeContrib-note">Your share is 11% by default. Your employer adds another 12–13% on top (required by law) — both go into your EPF.</div>
             </div>
             <div class="field">
-              <label for="postRetireRate">Return on EPF savings during retirement (%)</label>
-              <input type="number" id="postRetireRate" value="5" min="1" max="10" step="0.1" aria-describedby="postRetireRate-note">
-              <div class="field-note" id="postRetireRate-note">Your remaining EPF balance keeps earning returns even as you withdraw. This is the assumed annual rate during retirement.</div>
+              <label for="postRetireRate">Investment Rate of Return During Retirement (%)</label>
+              <input type="number" id="postRetireRate" value="3" min="3" max="5" step="0.1" aria-describedby="postRetireRate-note">
+              <div class="field-note" id="postRetireRate-note">How much your remaining EPF balance earns annually while you draw it down in retirement. Set conservatively at 3% — without a salary, you can't afford big losses. If you're comfortable with moderate risk, 5% is the upper limit.</div>
             </div>
           </div>
 
@@ -804,6 +804,9 @@
 
       if (yearsToRetire <= 0) errors.push("Retirement age must be greater than current age.");
       if (retireDuration <= 0) errors.push("Life expectancy must be greater than retirement age.");
+
+      const postRetireRateRaw = +document.getElementById('postRetireRate').value;
+      if (postRetireRateRaw < 3 || postRetireRateRaw > 5) errors.push("Investment rate of return during retirement must be between 3% and 5%.");
 
       if (errors.length > 0) {
         const r = document.getElementById('results');
@@ -1556,7 +1559,7 @@ ${hasLifestyleTargetCoverage ? "I'm on track but want to optimize my portfolio. 
           <div class="assumption-row"><span>Years to retirement</span><span>${yearsToRetire} years (age ${age} → ${retireAge})</span></div>
           <div class="assumption-row"><span>Retirement duration</span><span>${retireDuration} years (age ${retireAge} → ${lifeExp})</span></div>
           <div class="assumption-row"><span>EPF yearly dividend rate (while working)</span><span>${fmtD(epfDivVal)}/yr</span></div>
-          <div class="assumption-row"><span>Return on EPF savings during retirement</span><span>${fmtD(postRetireVal)}/yr</span></div>
+          <div class="assumption-row"><span>Investment rate of return during retirement</span><span>${fmtD(postRetireVal)}/yr</span></div>
           <div class="assumption-row"><span>Salary growth</span><span>${fmtD(salGrowthVal)}/yr</span></div>
           <div class="assumption-row"><span>Inflation rate</span><span>${fmtD(inflationVal)}/yr</span></div>
           <div class="assumption-row"><span>EPF Contribution</span><span>${employeeContribPct}% (You) + 12-13% (Employer, statutory)</span></div>
