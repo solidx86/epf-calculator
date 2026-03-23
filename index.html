@@ -7,12 +7,12 @@
   <title>EPF Sustainability Proof Calculator</title>
 
   <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8626QNEQP"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8626QNEQP" onerror="console.error('CRITICAL: Google Analytics script failed to load. Ad blocker active?')"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-V8626QNEQP');
+    gtag('config', 'G-V8626QNEQP', { 'debug_mode': true });
   </script>
 
   <style>
@@ -1710,9 +1710,18 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       el.innerHTML = html;
 
       // Attach event listeners programmatically for better reliability (CSP-friendly)
-      document.getElementById('share-result-btn').addEventListener('click', shareResult);
+      document.getElementById('share-result-btn').addEventListener('click', function() {
+        console.log('Event Triggered: share_epf_result');
+        shareResult();
+      });
+
       document.getElementById('whatsapp-btn').addEventListener('click', function() {
-        gtag('event', 'whatsapp_consultation');
+        console.log('Event Triggered: whatsapp_consultation');
+        gtag('event', 'whatsapp_consultation', {
+          'event_callback': function() {
+            console.log('GA4 Transmission Successful: whatsapp_consultation');
+          }
+        });
       });
 
       // Clear cached chart element refs — SVGs are recreated on each calculate()
@@ -1859,7 +1868,9 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
 
     async function shareResult() {
       if (!_shareData) return;
-      gtag('event', 'share_epf_result');
+      gtag('event', 'share_epf_result', {
+        'event_callback': function() { console.log('GA4 Transmission Successful: share_epf_result'); }
+      });
 
       if (isInstagramBrowser()) {
         alert('To save or share your result, please open this page in Safari or Chrome.\n\nTap the ··· menu (top right) → Open in Browser.');
