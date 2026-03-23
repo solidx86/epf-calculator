@@ -695,7 +695,7 @@
 
     <footer>
       Results are illustrative projections — not financial advice.
-      <span style="float:right; opacity:0.5;">v1.3.1 · 2026-03-23</span>
+      <span id="app-version" style="float:right; opacity:0.5;"></span>
     </footer>
 
   </div>
@@ -740,6 +740,9 @@
 
     // Assumed annual return for investment projections
     const INVEST_ANNUAL_RATE = 0.08;
+
+    const APP_VERSION = 'v1.3.1 · 2026-03-23';
+    document.getElementById('app-version').textContent = APP_VERSION;
 
     function fmt(n) { return 'RM' + Math.round(n).toLocaleString(); }
     function fmtD(n) { return parseFloat(n).toFixed(1) + '%'; }
@@ -1819,6 +1822,10 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
         ctx.font = '400 20px system-ui,-apple-system,sans-serif';
         ctx.fillStyle = '#94a3b8';
         ctx.fillText('Projection only \u00b7 Not financial advice', L, 1018);
+
+        ctx.font = '400 18px system-ui,-apple-system,sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText(APP_VERSION, L, 1052);
 
         ctx.font = '700 26px system-ui,-apple-system,sans-serif';
         ctx.fillStyle = accent;
