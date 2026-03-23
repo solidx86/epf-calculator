@@ -1350,19 +1350,28 @@ const needRealClass = epfMonthly >= needReal ? 'pos' : 'neg';
           dcXLabels += `<text x="${dcX(a)}" y="${dcH-8}" font-size="10" fill="rgba(0,0,0,0.4)" text-anchor="middle">${a}</text>`
         );
 
-        // Actual EPF path + fill
+        // Pixel x-coordinates for the two key vertical markers
+        const dcDepXv = dcPL + ((accurateDepletionAge - retireAge) / N) * dcCW;
+        const dcLifeXv = dcPL + dcCW; // = dcW - dcPR (lifeExp is always rightmost)
+
+        // Actual EPF path built from chartData directly — preserves the fractional depletion
+        // point so the line touches zero exactly at the depletion marker (not snapped to an integer year)
         let actualPath = '';
-        dcData.forEach((d, i) => { actualPath += (i === 0 ? `M ${dcX(d[0])} ${dcY(d[1])}` : ` L ${dcX(d[0])} ${dcY(d[1])}`); });
-        const actualFill = actualPath + ` L ${dcX(dcData[dcData.length-1][0])} ${(dcPT+dcCH).toFixed(1)} L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
+        chartData.forEach((d, i) => {
+          const x = (dcPL + ((d.age - retireAge) / N) * dcCW).toFixed(1);
+          actualPath += (i === 0 ? `M ${x} ${dcY(d.bal)}` : ` L ${x} ${dcY(d.bal)}`);
+        });
+        // Extend flat along baseline to lifeExp
+        if (chartData[chartData.length - 1].age < lifeExp)
+          actualPath += ` L ${dcLifeXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)}`;
+        const actualFill = actualPath + ` L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
 
         // Ideal path + fill
         let idealPath = '';
         dcData.forEach((d, i) => { idealPath += (i === 0 ? `M ${dcX(d[0])} ${dcY(d[2])}` : ` L ${dcX(d[0])} ${dcY(d[2])}`); });
-        const idealFill = idealPath + ` L ${dcX(lifeExp)} ${(dcPT+dcCH).toFixed(1)} L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
+        const idealFill = idealPath + ` L ${dcLifeXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)} L ${dcX(retireAge)} ${(dcPT+dcCH).toFixed(1)} Z`;
 
         // Gap zone (unfunded years: depletion → life expectancy)
-        const dcDepXv = dcPL + ((accurateDepletionAge - retireAge) / N) * dcCW;
-        const dcLifeXv = dcPL + dcCW; // = dcW - dcPR (lifeExp is always rightmost)
         const dcGapZone = `M ${dcDepXv.toFixed(1)} ${dcPT} L ${dcLifeXv.toFixed(1)} ${dcPT} L ${dcLifeXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)} L ${dcDepXv.toFixed(1)} ${(dcPT+dcCH).toFixed(1)} Z`;
 
         // Label positions — avoid overflow into Y-axis or collision with life exp label
