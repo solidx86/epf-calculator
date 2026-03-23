@@ -12,7 +12,10 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-V8626QNEQP', { 'debug_mode': true });
+    gtag('config', 'G-V8626QNEQP', {
+      'debug_mode': true,
+      'cookie_flags': 'SameSite=None;Secure'
+    });
   </script>
 
   <style>
@@ -1718,6 +1721,7 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
       document.getElementById('whatsapp-btn').addEventListener('click', function() {
         console.log('Event Triggered: whatsapp_consultation');
         gtag('event', 'whatsapp_consultation', {
+          'transport': 'beacon',
           'event_callback': function() {
             console.log('GA4 Transmission Successful: whatsapp_consultation');
           }
@@ -1869,6 +1873,7 @@ Result: Initial Annual Withdrawal of ${fmt(annualPayoutStart)} (approx ${fmt(epf
     async function shareResult() {
       if (!_shareData) return;
       gtag('event', 'share_epf_result', {
+        'transport': 'beacon',
         'event_callback': function() { console.log('GA4 Transmission Successful: share_epf_result'); }
       });
 
